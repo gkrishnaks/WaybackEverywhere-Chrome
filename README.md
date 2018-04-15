@@ -2,6 +2,8 @@ Wayback Everywhere
 ==================
 
 * * *
+Install in Chrome/Chromium : https://chrome.google.com/webstore/detail/wayback-everywhere/heienainncnjjejmamdkmbbfmblpffjj
+
 Install in Firefox / Firefox for Android : https://addons.mozilla.org/en-US/firefox/addon/wayback-everywhere/ 
 
 What is Wayback Everywhere?
