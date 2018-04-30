@@ -4,7 +4,7 @@
     archive.org's Wayback Machine except the ones in Excludes List
     Copyright (C) 2018 Gokulakrishna K S
 
-    his program is free software: you can redistribute it and/or modify
+    This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -81,7 +81,7 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
   };
 
   $s.removefromExclude = function(url) {
-    url1 = url.replace(/[\|&;\$%@"<>\(\)\+\^\'\*,]/g, "");
+    let url1 = url.replace(/[\|&;\$%@"<>\(\)\+\^\'\*,]/g, "");
     $s.message = null;
     var inclPattrn = getPattern(url1);
     var msg;
@@ -300,6 +300,24 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
       $s.$apply();
     });
   };
+
+  $s.operationmode = false; // we consider false as Default ON, true as disable on browser startup..
+
+  storage.get({
+    operationMode: false
+  }, function(obj) {
+    $s.operationmode = obj.operationMode;
+    $s.$apply();
+  });
+
+  $s.toggleOperationMode = function() {
+    storage.set({
+      operationMode: !$s.operationmode
+    }, function(a) {
+      $s.operationmode = !$s.operationmode;
+      $s.$apply();
+    });
+  }
 
   $s.doFactoryReset = function() {
     chrome.runtime.sendMessage({

@@ -4,7 +4,7 @@
     archive.org's Wayback Machine except the ones in Excludes List
     Copyright (C) 2018 Gokulakrishna K S
 
-    his program is free software: you can redistribute it and/or modify
+    This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Home: https://github.com/gkrishnaks
+    Home: https://github.com/gkrishnaks/WaybackEverywhere-Chrome
 */
 
 
@@ -61,10 +61,8 @@ chrome.tabs.onActivated.addListener(function(tab) {
   chrome.pageAction.show(tab.tabId);
 });
 */
-const VERSION = "1.7.0";
 log.enabled = false;
 const jsonUrl = 'settings/setting.json';
-var initialsettings;
 var readworker = new Worker(chrome.extension.getURL('js/readData.js'));
 
 function loadinitialdata(type) {
@@ -74,9 +72,12 @@ function loadinitialdata(type) {
 
 
 readworker.onmessage = function(e) {
-  initialsettings = e.data.workerResult.redirects;
+  let initialsettings = e.data.workerResult.redirects;
   var isReset = e.data.type;
   log(JSON.stringify(initialsettings));
+  //readworker.terminate();
+  //  readworker = undefined;
+
   STORAGE.set({
     redirects: initialsettings
   }, function() {
@@ -474,6 +475,8 @@ chrome.runtime.onMessage.addListener(
     } else if (request.type == 'doFullReset') {
       var resettype = request.type;
       delete request.type;
+      //  readworker = new Worker(chrome.extension.getURL('js/readData.js'));
+
       // loadinitialdata(() => {
       //   log('finished full  reset, returning response to setting page');
       //   sendResponse({
@@ -593,7 +596,60 @@ String.prototype.replaceAll = function(searchStr, replaceStr) {
   return str.replace(new RegExp(searchStr, 'gi'), replaceStr);
 };
 
+var updateWorker = new Worker(chrome.extension.getURL('js/readData.js'));
+
+function handleUpdate() {
+  let type = 'update';
+  let updateJson = 'settings/updates.json';
+  let absUrl = chrome.extension.getURL(updateJson);
+  updateWorker.postMessage([absUrl, 'json', type]);
+}
+
+updateWorker.onmessage = function(e) {
+  let changeInAddList = e.data.workerResult.changeInAddList;
+  let changeInRemoveList = e.data.workerResult.changeInRemoveList;
+  let addToDefaultExcludes = e.data.workerResult.addToDefaultExcludes;
+  let removeFromDefaultExcludes = e.data.workerResult.removeFromDefaultExcludes;
+  /*  updateWorker.terminate();
+    updateWorker = undefined;*/
+  // Add or remove from Excludes
+  STORAGE.get({
+    redirects: []
+  }, function(response) {
+    log("handleUpdate-  updating default excludes if needed");
+    let redirects = response.redirects;
+    // Add to redirects
+
+    if (changeInAddList && addToDefaultExcludes != null) {
+      redirects[0].excludePattern = redirects[0].excludePattern + addToDefaultExcludes;
+      log("the new excludes list is..." + redirects[0].excludePattern);
+    }
+    if (changeInRemoveList && removeFromDefaultExcludes != null) {
+      for (let i = 0; i < removeFromDefaultExcludes.length; i++) {
+        if (removeFromDefaultExcludes[i].indexOf("web.archive.org") > -1) {
+          continue;
+        }
+        let pattern = "|*" + removeFromDefaultExcludes[i] + "*";
+        //log("removing this from excludest list" + pattern);
+        redirects[0].excludePattern = redirects[0].excludePattern.replaceAll(pattern, '');
+      }
+      log("the new excludes list is. ." + redirects[0].excludePattern);
+    }
+    if (changeInAddList || changeInRemoveList) {
+      STORAGE.set({
+        redirects: redirects
+      }, function() {
+        // just do a onstartup function once to set some values..
+        handleStartup();
+      });
+    }
+
+  });
+
+}
+
 function handleStartup() {
+  log("Handle startup - fetch counts, fetch readermode setting, fetch appdisabled setting, clear out any temp excludes or temp includes");
   STORAGE.get({
     counts: counts
   }, function(response) {
@@ -606,6 +662,23 @@ function handleStartup() {
   STORAGE.set({
     disabled: false
   });
+
+  STORAGE.get({
+    operationMode: false
+  }, function(obj) {
+    STORAGE.set({
+      disabled: obj.operationMode
+    });
+    appDisabled = obj.operationMode;
+    //operationMode -> false is default behaviour of turning on WBE when browser loads.
+    // true - if user wishes to start browser with WBE disabled
+  });
+  /*
+    // Enable on startup - Popup button is "Temporarily disable.."
+    // as user can do full disable from addon/extension page anyway
+    STORAGE.set({
+      disabled: false
+    }); */
   // Disable logging on startup
   STORAGE.set({
     logging: false
@@ -679,7 +752,8 @@ function onInstalledfn(details) {
   }
 
   if (details.reason == "install") {
-    log(" Wayback Everywhere addon installed");
+    loadinitialdata('init');
+    console.log(" Wayback Everywhere addon installed");
 
     let counts = {
       archivedPageLoadsCount: 0,
@@ -688,21 +762,27 @@ function onInstalledfn(details) {
     STORAGE.set({
       counts: counts
     });
-    loadinitialdata('init');
 
     let tempExcludes = [];
     STORAGE.set({
       tempExcludes: tempExcludes
     });
-    let tempIncludes = [];
     STORAGE.set({
-      tempIncludes: tempIncludes
+      tempIncludes: tempExcludes
     });
   }
 
   if (details.reason == "update") {
-    // if addon updated, just do a onstartup function once to set some values..
-    handleStartup();
+    handleUpdate(); // To add or remove from "default excludes - see settings/updates.json
+    console.log(" Wayback Everywhere addon was updated - or the browser was updated");
+  }
+
+  if ((details.reason == "install" || details.reason == "update") && details.temporary != true) {
+    let url = chrome.extension.getURL('help.html');
+    log("Wayback Everywhere addon installed or updated..");
+    chrome.tabs.create({
+      url: url
+    });
   }
 
 }

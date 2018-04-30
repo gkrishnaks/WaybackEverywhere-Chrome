@@ -2,9 +2,9 @@ Wayback Everywhere
 ==================
 
 * * *
-Install in Chrome/Chromium : https://chrome.google.com/webstore/detail/wayback-everywhere/heienainncnjjejmamdkmbbfmblpffjj
+Install in Chrome/Chromium : [Chrome Webstore](https://chrome.google.com/webstore/detail/wayback-everywhere/heienainncnjjejmamdkmbbfmblpffjj)
 
-Install in Firefox / Firefox for Android : https://addons.mozilla.org/en-US/firefox/addon/wayback-everywhere/ 
+Install in Firefox / Firefox for Android : [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/wayback-everywhere)
 
 What is Wayback Everywhere?
 ---------------------------
@@ -31,7 +31,7 @@ Features
 Auto-Detect Wayback Machine Error Messages
 -----------------------------
 
-*   **Save Page to Wayback Machine** \- When WaybackMachine site throws error message that says "This page is available on the web, save this page to Wayback to make it more complete", the addon automatically loads the Save page url as https://web.archive.org/save/ <URL>
+*   **Auto-Save Page to Wayback Machine** \- When WaybackMachine site throws error message that says "This page is available on the web, save this page to Wayback to make it more complete", the addon automatically loads the Save page url as https://web.archive.org/save/ <URL>
 *   **Auto-add to Excludes List** \- When Wayback Machine site throws error message that says it cannot load a page due to the site being excluded from Wayback Machine or if the site excluded itself from Wayback using Robots.txt file, the addon automatically detects this error message and puts the site (domainname) in Excludes list. And then it loads the live webpage. This helps the user to build her Excludes list Automatically over few days of usage.
 
 
@@ -93,21 +93,25 @@ Default Excludes List
 *   Upon install, a set of predefined rules are loaded into the Excludes List. This is to provide a starting point for the users. This list is prepared by the developer(s) of this addon on purely technical basis:
 *   Some sites that are excluded from Wayback Machine - quora.com for example
 *   Some sites that use robots.txt file on server to exclude themselves from Wayback Machine - smithsonianmag.com, for example
-*   Some sites that may need login, as Wayback Machine archives public pages only. For example, docs.google.com or paypal.com , or some sites that host video content which may not work in Waymachine Archived version like youtube.com or vimeo.com
+*   Some sites that may need login, as Wayback Machine archives public pages only. For example, docs.google.com or paypal.com , or some sites that host video content which may not work in Wayback machine Archived version like youtube.com or vimeo.com
 *   Some sites that may not work fine with Wayback Machine - ft.com for example.
 *   Some URL shortener sites.
 *   Some Search engines to help the user avoid seeing Wayback redirects when she searches
-*   Some local address like 127.0.0 * and 192.168.* so that user can browse these without routing
+*   Some reserved addresses like 127.0.0 * and 0.0.0* so that user can browse these without routing
+*   Some online education learning course sites as they host video content and also need login to work
+*   Some cloud storage sites as they need login anyway (Dropbox, WeTransfer,Box)
 P.S : There's no other agenda behind this bundled list made available during install :)
 
 
 If user wishes to reset his Excludes back to the ones provided by Developer, she can do so from the Settings Page
 
+TODO : [TODO](TODO)
+
 
 License
 -------
 
-The WaybackEverywhere addon is licensed under GPLv3 license. Refer the full license here : [License](LICENSE.html)
+The WaybackEverywhere addon is licensed under GPLv3 license. Refer the full license here : [License](LICENSE)
 
 
 \-\-\-
@@ -125,7 +129,7 @@ The developer of this addon/extension is _NOT_ affliated with the Internet Archi
 
 
 
-Privacy Policy in one line : We do not collect your data. Detailed privacy policy page : [Privacy Policy](privacy.html)
+Privacy Policy in one line : We do not collect your data. Detailed privacy policy page : [Privacy Policy](Privacy%20Policy)
 
 
 

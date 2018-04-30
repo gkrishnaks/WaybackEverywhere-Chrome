@@ -3,8 +3,8 @@
   "manifest_version": 2,
   "name": "Wayback Everywhere",
   "description": "Automatically redirect every page to its archived version in Wayback Machine, except the sites in Excludes List",
-  "version": "1.0.1",
-
+  "version": "1.0.2",
+  "homepage_url": "https://github.com/gkrishnaks/WaybackEverywhere-Chrome",
   "icons": {
     "16": "images/icon.png",
     "32": "images/icon@2x.png",
@@ -20,7 +20,7 @@
       "id": "gokulakrishnaks@gmail.com"
     }
   },
- "browser_action": {
+  "browser_action": {
     "default_icon": {
       "19": "images/icon.png",
       "38": "images/icon@2x.png"

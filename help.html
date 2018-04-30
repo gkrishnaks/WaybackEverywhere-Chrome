@@ -58,7 +58,7 @@
 				<div id="AutodetectWayBackMessages" class="collapse" data-parent="#accordion">
 					<div class="card-body">
 						<ul>
-							<li><strong>Save Page to Wayback Machine</strong> - When WaybackMachine site throws error message that says "This page is available on the web, save this page to Wayback to make it more complete", the addon automatically loads the Save page url as
+							<li><strong>Auto-save Page to Wayback Machine</strong> - When WaybackMachine site throws error message that says "This page is available on the web, save this page to Wayback to make it more complete", the addon automatically loads the Save page url as
 								https://web.archive.org/save/
 								<<span>URL</span>></li>
 							<li><strong>Auto-add to Excludes List </strong> - When Wayback Machine site throws error message that says it cannot load a page due to the site being excluded from Wayback Machine or if the site excluded itself from Wayback using Robots.txt file,
@@ -190,8 +190,9 @@
 										<li> &#9658; Some sites that may not work fine with Wayback Machine - ft.com for example.</li>
 											<li>&#9658; Some URL shortener sites.</li>
 											<li> &#9658; Some Search engines to help the user avoid seeing Wayback redirects when she searches </li>
-											<li> &#9658; Some local address like 127.0.0 * and 192.168.* so that user can browse these without routing</li>
-
+											<li> &#9658; Some reserved addresses like 127.0.0 * and 0.0.0* so that user can browse these without routing</li>
+											<li> &#9658; Some online education learning course sites as they host video content and also need login to work</li>
+											<li> &#9658; Some cloud storage sites as they need login anyway (Dropbox, WeTransfer,Box)</li> <br/>
 											<small>P.S : There's no other agenda behind this bundled list made available during install :)</small>
 								</ul> </div>
 <br/>If user wishes to reset his Excludes back to the ones provided by Developer, she can do so from the Settings Page

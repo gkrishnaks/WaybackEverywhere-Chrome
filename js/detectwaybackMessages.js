@@ -4,7 +4,7 @@
     archive.org's Wayback Machine except the ones in Excludes List
     Copyright (C) 2018 Gokulakrishna K S
 
-    his program is free software: you can redistribute it and/or modify
+    This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -63,6 +63,8 @@ if (error != null) {
   e8 = fullString.indexOf('retrieve all the files we need to display that page');
   e9 = fullString.indexOf('Wayback Exception');
   e10 = fullString.indexOf('unknown exception has occured');
+  e11 = fullString.indexOf('snapshot cannot be displayed due to an internal error');
+
   //console.log(canSave, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10);
   if (canSave > -1) {
     //  console.log('detected save this page');
@@ -75,10 +77,24 @@ if (error != null) {
     sendSaveMessage();
   } else if (e6 > -1 && e7 > -1) {
     sendExcludeMessage('AddtoTempExcludesList');
-  } else if (e8 > -1 || e9 > -1 || e10 > -1) {
+  } else if (e8 > -1 || e9 > -1 || e10 > -1 || e11 > -1) {
     sendExcludeMessage('AddtoTempExcludesList');
 
   } else {
-    //log('detected unknown error, perhaps an archived page had an id error.. Ignore');
+    //log('detected unknown error, perhaps an archived page had an id "error".. Ignore');
   }
 }
+
+//to hide wayback hideWaybackToolbat
+// We hide for 2 cases
+// 1. In desktop firefox user clicks save as pdf button
+// 2. In Firefox Android, as there`s limited screen space,  let's hide it
+// Below is for case2, case 1 handled by hideWMtoolbar.js called from popup.js
+
+// This is not applicable for Chrome
+/*if (navigator.userAgent.match(/Android/i)) {
+  let c = document.getElementById("wm-tb-close");
+  if (c != null) {
+    c.click();
+  }
+} */
