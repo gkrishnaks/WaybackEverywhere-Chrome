@@ -46,6 +46,8 @@
 							<li> <strong>Settings Page </strong> - Settings page allows you to add or remove a site from the excludes list, and also do factory reset. If you are interested, you can enable console logging from here. More information on Popup Menu available here
 								<a data-toggle="collapse" data-parent="#accordion" href="#settings">Settings Page</a></li>
 							</li>
+						<li><strong>Auto-enable Reader mode for Archived pages </strong> - From settings page, enable the option to automatically open "Reader mode" for archived pages which support Firefox's reader mode. (This option is currently not available in Firefox for Android)
+						</li>
 						</ul></div>
 				</div>
 			</div>
@@ -148,7 +150,9 @@
 						<li>Settings page lets you view Existing Excludes list. and add or remove from excludes list manually by using the buttons provides</li>
 						<li>This page also lets you reset the Excludes list back to the default one provided during addon installation if the user wishes for the same. More information on the default list : <a data-toggle="collapse" data-parent="#accordion"
 								href="#defaultexcludepattern">Default Excludes list provided during install</a></li>
-								<li> You can export and import settings from this page. More information on this here : <a data-toggle="collapse" data-parent="#accordion"
+				<li>This page has an option to Auto-enable Reader mode for Archived pages - to automatically open "Reader mode" for archived pages which support Firefox's reader mode. (This option is currently not available in Firefox for Android)</li>
+
+					<li> You can export and import settings from this page. More information on this here : <a data-toggle="collapse" data-parent="#accordion"
 										href="#exportimport">Export and Import Settings</a> </li>
 						<li>Additionally, curious users may enable Logging on the checkbox provided to view system logs in Browser console.</li>
 					</ul>
@@ -200,6 +204,28 @@
 	</div>
 
 	<br>
+
+	<div class="card">
+			<div class="card-header" style="text-align: center;">
+			<button class="btn btn-outline-primary" style="border-color: #007bff" class="collapsed card-link" data-toggle="collapse" data-parent="#accordion" href="#Loadall1plinks">[EXPERIMENTAL FEATURE] Open all links in a archived page as new tabs</button>
+			</div>
+			<div id="Loadall1plinks" class="collapse" data-parent="#accordion">
+				<div class="card-body">
+					<ul >
+						<li>This feature is for advanced users only and is in EXPERIMENTAL STATE, hence not enabled by default. Please read the below before using it </li>
+						<li>Setting page has an option to enable "open all links in page" button to Popup menu.</li>
+						<li>Once enabled, this adds a button and input field to Popup Menu.</li>
+						<li>You need to enter a selector in input field before you click Open all links.</li><br/>
+						<li>For example, open this page <a href="https://web.archive.org/web/20180429164845/https://en.wikisource.org/wiki/Free_as_in_Freedom_(2002)" target="_blank">Free as in Freedom</a>
+
+							<br/>All the chapters listed have "Chapter" in the URLs. So, open popup menu and enter "Chapter" as selector and click "Open All Links" button - this will open all the chapter links in new tabs</li>
+							<li>This may cause your browser to freeze until all tabs are loaded - Use Selector wisely to only open the links that you really want to open in new tabs</li>
+					</ul>
+					 </div>
+			</div>
+		</div>
+
+		<br>
 
 	<div class="card">
 			<div class="card-header" style="text-align: center;">

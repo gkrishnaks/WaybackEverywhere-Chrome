@@ -3,7 +3,7 @@
   "manifest_version": 2,
   "name": "Wayback Everywhere",
   "description": "Automatically redirect every page to its archived version in Wayback Machine, except the sites in Excludes List",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "homepage_url": "https://github.com/gkrishnaks/WaybackEverywhere-Chrome",
   "icons": {
     "16": "images/icon.png",
@@ -32,7 +32,7 @@
 
   "content_scripts": [{
     "matches": ["*://web.archive.org/*"],
-    "js": ["js/detectwaybackMessages.js"]
+    "js": ["js/detectwaybackMessages.js", "js/getAllFirstPartylinks.js"]
   }],
 
 

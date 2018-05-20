@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Home: https://github.com/gkrishnaks/WaybackEverywhere-Chrome
+    Home: https://github.com/gkrishnaks/WaybackEverywhere-Firefox
 */
 
 
@@ -28,7 +28,6 @@ chrome.runtime.onInstalled.addListener(onInstalledfn);
 chrome.runtime.onStartup.addListener(handleStartup);
 const STORAGE = chrome.storage.local;
 
-
 function log(msg) {
   if (log.enabled) {
     console.log('WaybackEverywhere: ' + msg);
@@ -37,58 +36,72 @@ function log(msg) {
 var appDisabled = false;
 var tempExcludes = [];
 var tempIncludes = [];
+var isLoadAllLinksEnabled = false;
 
 
-function onError(error) {
-  log(error);
-}
+// headerHandler - Append this to browser's UserAgent for "Save" requests - "WaybackEverywhere" 
+// Wayback Machine Team requested for an unique useragent so that they can audit "save page" requests 
+// that are sent from this extension/addon - https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/4
+
+function headerHandler( details ) {
+  let headers = details.requestHeaders;
+  let blockingResponse = {};
+  for(let i = 0, l = headers.length; i < l; ++i ) {
+    if( headers[i].name.toLowerCase() === 'user-agent' ) {
+      headers[i].value =  "Save Page Request from WaybackEverywhere Browser Extension";
+      break;
+    }
+  }
+  blockingResponse.requestHeaders = headers;
+  log(JSON.stringify(blockingResponse));
+  return blockingResponse;
+};
+
+chrome.webRequest.onBeforeSendHeaders.addListener( headerHandler, {
+    urls: [ "https://web.archive.org/save*" ]
+  }, ['requestHeaders','blocking'] );
+
+
+
+
 /*
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-  chrome.pageAction.show(tabId);
-
-
-});
-
 chrome.pageAction.onClicked.addListener(function(tab) {
 
   chrome.pageAction.setPopup({
     tabId: tab.id,
     popup: "popup.html"
   });
-});
+});*/
 
-chrome.tabs.onActivated.addListener(function(tab) {
-  chrome.pageAction.show(tab.tabId);
-});
-*/
+
 log.enabled = false;
-const jsonUrl = 'settings/setting.json';
-var readworker = new Worker(chrome.extension.getURL('js/readData.js'));
 
 function loadinitialdata(type) {
-  var absUrl = chrome.extension.getURL(jsonUrl);
+  let initialsettings;
+  let jsonUrl = 'settings/setting.json';
+  let absUrl = chrome.extension.getURL(jsonUrl);
+  let readworker = new Worker(chrome.extension.getURL('js/readData.js'));
   readworker.postMessage([absUrl, 'json', type]);
+  readworker.onmessage = function(e) {
+    initialsettings = e.data.workerResult.redirects;
+    var isReset = e.data.type;
+    log(JSON.stringify(initialsettings));
+    readworker.terminate();
+    STORAGE.set({
+      redirects: initialsettings
+    }, function() {
+      if (isReset == 'doFullReset') {
+        log('full reset completed, refrreshing tab to show changes');
+        chrome.tabs.reload({
+          bypassCache: true
+        });
+      }
+    });
+  };
 };
 
 
-readworker.onmessage = function(e) {
-  let initialsettings = e.data.workerResult.redirects;
-  var isReset = e.data.type;
-  log(JSON.stringify(initialsettings));
-  //readworker.terminate();
-  //  readworker = undefined;
 
-  STORAGE.set({
-    redirects: initialsettings
-  }, function() {
-    if (isReset == 'doFullReset') {
-      log('full reset completed, refrreshing tab to show changes');
-      chrome.tabs.reload({
-        bypassCache: true
-      });
-    }
-  });
-};
 
 var addSitetoExclude = function(request, sender) {
 
@@ -244,10 +257,42 @@ function checkRedirects(details) {
   if (details.method != 'GET') {
     return {};
   }
-  // Once wayback redirect url is loaded, we can just return it..
-  if (details.url.indexOf("web.archive.org/") > -1) {
+
+  //Return save page requests right away
+  if (details.url.indexOf("web.archive.org/save") > -1) {
     return {};
   }
+
+  if (details.url.indexOf("web.archive.org/web") > -1) {
+    let urlDetails = getHostfromUrl(details.url);
+    // Once wayback redirect url is loaded, we can just return it except when it's in exclude pattern.
+    // this is for issue https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/7
+    // When already in archived page, Wayback Machine appends web.archive.org/web/2/* to all URLs in the page
+    // For example, when viewing archived site, there's a github link - and if github is in Excludes list,
+    // Using this, we load live page of github since it's in excludes list. 
+    // we may add a switch to Settings page to disable this behaviour at a later time if needed.
+    
+    // Need to use once we make Excludepattern array of hosts instead of regex 
+    //if(excludePatterns.indexOf(host))
+    log("Checking if this is in Excludes so that we can return live page url ..  " + urlDetails.url);
+    let shouldExclude = !!excludePatterns.exec(urlDetails.hostname);
+    if(tempIncludes.length == 0){
+      if(shouldExclude){
+        return {redirectUrl: urlDetails.url};
+      }
+        return {};
+    } else
+    {
+      if (tempIncludes.indexOf(urlDetails.hostname) > -1){
+        return {};
+      }
+      if(shouldExclude){
+        return {redirectUrl: urlDetails.url};
+      }
+    }    
+  return {};
+}
+    
   log(' Checking: ' + details.type + ': ' + details.url);
 
   var list = partitionedRedirects[details.type];
@@ -338,8 +383,9 @@ function monitorChanges(changes, namespace) {
   }
 
   if (changes.redirects) {
-
-
+    let newRedirects=changes.redirects.newValue;
+    excludePatterns=getRegex(newRedirects[0].excludePattern);
+      
     if (!appDisabled) {
       log('Wayback Everywhere Excludes list have changed, setting up listener again');
       setUpRedirectListener();
@@ -360,8 +406,28 @@ function monitorChanges(changes, namespace) {
     tempExcludes = changes.tempExcludes.newValue;
     log(tempExcludes);
   }
+
+  if (changes.isLoadAllLinksEnabled) {
+    log("load all 1p links setting changed to " + changes.isLoadAllLinksEnabled.newValue);
+    isLoadAllLinksEnabled = changes.isLoadAllLinksEnabled.newValue;
+  }
 }
 
+function getRegex(excludePatterns){
+let converted = '^';
+      for (let i = 0; i < excludePatterns.length; i++) {
+        var ch = excludePatterns.charAt(i);
+        if ('()[]{}?.^$\\+'.indexOf(ch) != -1) {
+          converted += '\\' + ch;
+        } else if (ch == '*') {
+          converted += '(.*?)';
+        } else {
+          converted += ch;
+        }
+      }
+      converted += '$';
+      return new RegExp(converted, 'gi');
+    }
 //TODO: move Remove from Excludes from popup.js to here
 // i.e Temporary incldue or Include should go here, currently it's in popup.js
 
@@ -407,6 +473,7 @@ function createPartitionedRedirects(redirects) {
   return partitioned;
 }
 
+var excludePatterns;
 //Sets up the listener, partitions the redirects, creates the appropriate filters etc.
 function setUpRedirectListener() {
   log(' in setUpRedirectListener ..');
@@ -417,10 +484,12 @@ function setUpRedirectListener() {
     redirects: []
   }, function(obj) {
     var redirects = obj.redirects;
-    if (redirects.length == 0) {
+     if (redirects.length == 0) {
       log(' No redirects defined, not setting up listener');
       return;
     }
+    excludePatterns=getRegex(redirects[0].excludePattern);
+           // (we need to make ExcludePattern an array of hosts, currently it's regex)
 
     partitionedRedirects = createPartitionedRedirects(redirects);
     var filter = createFilter(redirects);
@@ -430,7 +499,7 @@ function setUpRedirectListener() {
   });
 }
 
-
+var justreloaded;
 //Firefox doesn't allow the "content script" which is actually privileged
 //to access the objects it gets from chrome.storage directly, so we
 //proxy it through here
@@ -475,8 +544,6 @@ chrome.runtime.onMessage.addListener(
     } else if (request.type == 'doFullReset') {
       var resettype = request.type;
       delete request.type;
-      //  readworker = new Worker(chrome.extension.getURL('js/readData.js'));
-
       // loadinitialdata(() => {
       //   log('finished full  reset, returning response to setting page');
       //   sendResponse({
@@ -497,9 +564,32 @@ chrome.runtime.onMessage.addListener(
         counts: a,
         appDisabled: appDisabled,
         tempExcludes: tempExcludes,
-        tempIncludes: tempIncludes
+        tempIncludes: tempIncludes,
+        isLoadAllLinksEnabled: isLoadAllLinksEnabled
       };
       sendResponse(c);
+
+    } else if (request.type == "openAllLinks") {
+      delete request.type;
+      log(JSON.stringify(request));
+      let urls = request.data;
+
+      for (let i = 0; i < urls.length; i++) {
+        if (request.selector.length != 0 && urls[i].indexOf(request.selector) > -1) {
+          if (urls[i].indexOf("http") != 0) {
+
+            if (urls[i].indexOf("/web") == 0) {
+              urls[i] = "https://web.archive.org" + urls[i];
+              //console.log(urls[i]);
+            }
+          }
+          log("Opening this url in new tab -> " + urls[i]);
+
+          chrome.tabs.create({
+            url: urls[i]
+          });
+        }
+      }
 
     } else {
       log('Unexpected message: ' + JSON.stringify(request));
@@ -509,6 +599,34 @@ chrome.runtime.onMessage.addListener(
     return true; //This tells the browser to keep sendResponse alive because
     //we're sending the response asynchronously.
   });
+
+// Added the below to hande a very rare case where Wayback throws "504" error when Saving page.
+// Manually reloading the page was enough to get it work next time. 
+// This will just reload the page once and stop reloading after that if it continues as 
+// .. it assigned url to justreloaded variable
+
+// Find out if 504 is thrown by the saved page or by WM itself -
+// Need to Comment out the below if WM is actually the one that shows this 504
+
+function reloadPage(tabId, tabUrl) {
+  if (tabUrl !== justreloaded) {
+    chrome.tabs.reload(tabId, {
+      bypassCache: true
+    }, function() {
+      justreloaded = tabUrl;
+    });
+  }
+}
+chrome.webRequest.onCompleted.addListener(function(details) {
+  /*if (details.type == "main_frame") {
+    console.log("status code is " + details.statusCode + " in url " + details.url);
+  } */
+  if (details.statusCode == 504 && details.type == "main_frame") {
+    reloadPage(details.tabId, details.url);
+  }
+}, {
+  urls: ["*://web.archive.org/*"]
+});
 
 
 //First time setup
@@ -526,7 +644,8 @@ function updateLogging() {
 updateLogging();
 
 function savetoWM(request, sender, sendResponse) {
-  var url1, tabid;
+  let url1=''; 
+  let tabid;
   var activetab = true;
   if (request.subtype == 'fromContent') {
     log('savetoWM message received from content script for ' + sender.tab.url + ' in tabid ' + sender.tab.id);
@@ -596,57 +715,72 @@ String.prototype.replaceAll = function(searchStr, replaceStr) {
   return str.replace(new RegExp(searchStr, 'gi'), replaceStr);
 };
 
-var updateWorker = new Worker(chrome.extension.getURL('js/readData.js'));
 
-function handleUpdate() {
+function handleUpdate(istemporary) {
+  let updateWorker = new Worker(chrome.extension.getURL('js/readData.js'));
+
   let type = 'update';
   let updateJson = 'settings/updates.json';
   let absUrl = chrome.extension.getURL(updateJson);
   updateWorker.postMessage([absUrl, 'json', type]);
-}
+  updateWorker.onmessage = function(e) {
+    let changeInAddList = e.data.workerResult.changeInAddList;
+    let changeInRemoveList = e.data.workerResult.changeInRemoveList;
+    let addToDefaultExcludes = e.data.workerResult.addToDefaultExcludes;
+    let removeFromDefaultExcludes = e.data.workerResult.removeFromDefaultExcludes;
+    let showUpdatehtml = e.data.workerResult.showUpdatehtml;
+    updateWorker.terminate();
+    // Add or remove from Excludes
+    STORAGE.get({
+      redirects: []
+    }, function(response) {
+      log("handleUpdate-  updating default excludes if needed");
+      let redirects = response.redirects;
+      // Add to redirects
 
-updateWorker.onmessage = function(e) {
-  let changeInAddList = e.data.workerResult.changeInAddList;
-  let changeInRemoveList = e.data.workerResult.changeInRemoveList;
-  let addToDefaultExcludes = e.data.workerResult.addToDefaultExcludes;
-  let removeFromDefaultExcludes = e.data.workerResult.removeFromDefaultExcludes;
-  /*  updateWorker.terminate();
-    updateWorker = undefined;*/
-  // Add or remove from Excludes
-  STORAGE.get({
-    redirects: []
-  }, function(response) {
-    log("handleUpdate-  updating default excludes if needed");
-    let redirects = response.redirects;
-    // Add to redirects
-
-    if (changeInAddList && addToDefaultExcludes != null) {
-      redirects[0].excludePattern = redirects[0].excludePattern + addToDefaultExcludes;
-      log("the new excludes list is..." + redirects[0].excludePattern);
-    }
-    if (changeInRemoveList && removeFromDefaultExcludes != null) {
-      for (let i = 0; i < removeFromDefaultExcludes.length; i++) {
-        if (removeFromDefaultExcludes[i].indexOf("web.archive.org") > -1) {
-          continue;
-        }
-        let pattern = "|*" + removeFromDefaultExcludes[i] + "*";
-        //log("removing this from excludest list" + pattern);
-        redirects[0].excludePattern = redirects[0].excludePattern.replaceAll(pattern, '');
+      if (changeInAddList && addToDefaultExcludes != null) {
+        redirects[0].excludePattern = redirects[0].excludePattern + addToDefaultExcludes;
+        log("the new excludes list is..." + redirects[0].excludePattern);
       }
-      log("the new excludes list is. ." + redirects[0].excludePattern);
-    }
-    if (changeInAddList || changeInRemoveList) {
-      STORAGE.set({
-        redirects: redirects
-      }, function() {
-        // just do a onstartup function once to set some values..
+      if (changeInRemoveList && removeFromDefaultExcludes != null) {
+        for (let i = 0; i < removeFromDefaultExcludes.length; i++) {
+          if (removeFromDefaultExcludes[i].indexOf("web.archive.org") > -1) {
+            continue;
+          }
+          let pattern = "|*" + removeFromDefaultExcludes[i] + "*";
+          //log("removing this from excludest list" + pattern);
+          redirects[0].excludePattern = redirects[0].excludePattern.replaceAll(pattern, '');
+        }
+        log("the new excludes list is. ." + redirects[0].excludePattern);
+      }
+      if (changeInAddList || changeInRemoveList) {
+        STORAGE.set({
+          redirects: redirects
+        }, function() {
+          // just do a onstartup function once to set some values..
+          handleStartup();
+
+        });
+      } else {
         handleStartup();
-      });
-    }
+      }
 
-  });
+      if (showUpdatehtml && istemporary != true) {
+        openUpdatehtml();
+      }
+    });
 
+  }
 }
+
+function openUpdatehtml() {
+  let url = chrome.extension.getURL('update.html');
+  log("Wayback Everywhere addon installed or updated..");
+  chrome.tabs.create({
+    url: url
+  });
+}
+
 
 function handleStartup() {
   log("Handle startup - fetch counts, fetch readermode setting, fetch appdisabled setting, clear out any temp excludes or temp includes");
@@ -657,10 +791,12 @@ function handleStartup() {
     counts.waybackSavescount = response.counts.waybackSavescount;
     oldcounts = JSON.parse(JSON.stringify(counts));
   });
-  // Enable on startup - Popup button is "Temporarily disable.."
-  // as user can do full disable from addon/extension page anyway
-  STORAGE.set({
-    disabled: false
+
+
+  STORAGE.get({
+    isLoadAllLinksEnabled: false
+  }, function(obj) {
+    isLoadAllLinksEnabled = obj.isLoadAllLinksEnabled;
   });
 
   STORAGE.get({
@@ -743,14 +879,6 @@ function handleStartup() {
 
 function onInstalledfn(details) {
   log(JSON.stringify(details));
-  if ((details.reason == "install" || details.reason == "update") && details.temporary != true) {
-    let url = chrome.extension.getURL('help.html');
-    log("Wayback Everywhere addon installed or updated..");
-    chrome.tabs.create({
-      url: url
-    });
-  }
-
   if (details.reason == "install") {
     loadinitialdata('init');
     console.log(" Wayback Everywhere addon installed");
@@ -762,7 +890,6 @@ function onInstalledfn(details) {
     STORAGE.set({
       counts: counts
     });
-
     let tempExcludes = [];
     STORAGE.set({
       tempExcludes: tempExcludes
@@ -773,11 +900,11 @@ function onInstalledfn(details) {
   }
 
   if (details.reason == "update") {
-    handleUpdate(); // To add or remove from "default excludes - see settings/updates.json
-    console.log(" Wayback Everywhere addon was updated - or the browser was updated");
+    handleUpdate(details.temporary); // To add or remove from "default excludes - see settings/updates.json
+    console.log(" Wayback Everywhere addon was updated");
   }
 
-  if ((details.reason == "install" || details.reason == "update") && details.temporary != true) {
+  if (details.reason == "install" && details.temporary != true) {
     let url = chrome.extension.getURL('help.html');
     log("Wayback Everywhere addon installed or updated..");
     chrome.tabs.create({
