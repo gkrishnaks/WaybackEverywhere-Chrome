@@ -80,6 +80,47 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
       $s.showMessage(msg, 'success', 10, 1);
     }
   };
+    $s.tempExcludes = "";
+    $s.tempIncludes = "";
+    $s.justSaved= "";
+    $s.filters ="";
+  var getTemps=function() {
+    chrome.runtime.sendMessage({
+        type: "appDetails",
+      },
+      function(response) {
+       /* log.enabled = response.logstatus;
+        let counts = JSON.parse(response.counts);
+        // {"archivedPageLoadsCount":0,"waybackSavescount":0}
+        $s.savecount = counts.waybackSavescount;
+        $s.loadcount = counts.archivedPageLoadsCount;
+        $s.disabled = response.appDisabled; */
+        $s.tempExcludes = response.tempExcludes.join('').replace(/\*/g, '').substring(1).replace(/\|/g, ', ');
+        $s.tempIncludes = response.tempIncludes.join('').replace(/\*/g, '').substring(1).replace(/\|/g, ', ');
+        //$s.isLoadAllLinksEnabled = response.isLoadAllLinksEnabled;
+        //  console.log('tempExcludes is ' + tempExcludes + ' tempIncludes is ' + tempIncludes);
+        if(response.justSaved.length>0){
+        $s.justSaved = response.justSaved.join(', '); }
+        $s.filters= response.filters;
+        $s.$apply();
+      });
+  }
+
+  getTemps();
+
+  $s.clearTemps=function(){
+      chrome.runtime.sendMessage({
+        type: "clearTemps",
+      },
+      function(response) {
+          if(response.message == "successfullyclearedTemps"){
+            $s.tempExcludes = "";
+            $s.tempIncludes = "";
+            $s.$apply();
+            getRules();
+          }
+      });
+  }
 
   $s.removefromExclude = function(url) {
     let url1 = url.replace(/[\|&;\$%@"<>\(\)\+\^\'\*,]/g, "");
@@ -102,7 +143,7 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
     let str = $s.redirects[0].excludePattern;
     let array = str.split('*');
     // Using >0 because we shouldn't let remove web.archive.org from excludeslist - avoiding endless redirect loop
-    if (array.indexOf(inclPattrn.domain) > 0) {
+    if (array.indexOf(inclPattrn.domain) > -1) {
       $s.newIncludeSite = "";
 
       var obj = replaceAll($s.redirects[0].excludePattern, inclPattrn.domain);
@@ -220,8 +261,6 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
     });
   };
 
-  var storage = chrome.storage.local; //TODO: Change to sync when Firefox supports it...
-
   function normalize(r) {
     return new Redirect(r).toObject(); //Cleans out any extra props, and adds default values for missing ones.
   }
@@ -235,12 +274,8 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
     }, function(response) {
       $s.redirects = [];
       $s.redirects = arr;
-      var exc1 = $s.redirects[0].excludePattern;
-      $s.ReadableExcludePattern = exc1.replace(/\*/g, '');
-      $s.ReadableExcludePattern = $s.ReadableExcludePattern.replace(/\|/g, ', ');
-
+      $s.ReadableExcludePattern = $s.redirects[0].excludePattern.replace(/\*/g, '').replace(/\|/g, ', ');
       $s.$apply();
-
     });
 
   }
@@ -287,18 +322,18 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
   $s.ReadableExcludePattern = 'web.archive.org';
   //Need to proxy this through the background page,because Firefox gives us dead objects
   //nonsense when accessing chrome.storage directly.
+  function getRules(){
   chrome.runtime.sendMessage({
     type: "getredirects"
   }, function(response) {
-    for (var i = 0; i < response.redirects.length; i++) {
-      $s.redirects.push(normalize(response.redirects[i]));
+    if($s.redirects.length == 0){
+    $s.redirects.push(normalize(response.redirects[0]));
     }
-    var exc = $s.redirects[0].excludePattern;
-    $s.ReadableExcludePattern = exc.replace(/\*/g, '');
-    $s.ReadableExcludePattern = $s.ReadableExcludePattern.replace(/\|/g, ', ');
-
+    $s.ReadableExcludePattern = response.redirects[0].excludePattern.replace(/\*/g, '').replace(/\|/g, ', ');
     $s.$apply();
   });
+  }
+  getRules();
 
   $s.logging = false;
 
@@ -321,18 +356,49 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
       $s.$apply();
     });
   };
- 
 
-    
+
+  $s.clearAllHostnamesFromExcludes = function(){
+     storage.get({
+    redirects: []
+  }, function(obj) {
+         let redirectslist=obj.redirects;
+         redirectslist[0].excludePattern = "*web.archive.org*|*archive.org*";
+         storage.set({redirects:redirectslist});
+         $s.ReadableExcludePattern = "web.archive.org, archive.org";
+         $s.$apply();
+     });
+  }
+
+  $s.clearAllStats = function(){
+    var counts = {
+     archivedPageLoadsCount: 0,
+     waybackSavescount: 0
+    };
+    storage.set({counts: counts});
+  }
+
+  $s.clearAllFilters = function(){
+      let filters=[];
+      storage.set({filters: filters},function(){
+        $s.filters="";
+        $s.$apply();
+      });
+
+  }
+
+
+
+
   $s.operationmode=false; // we consider false as Default ON, true as disable on browser startup..
-  
+
   storage.get({
     operationMode: false
   }, function(obj) {
   $s.operationmode=obj.operationMode;
       $s.$apply();
   });
-    
+
   $s.toggleOperationMode=function(){
       storage.set({
       operationMode:!$s.operationmode
@@ -341,7 +407,7 @@ waybackEverywhereApp.controller('WBESettingsPageControl', ['$scope', '$timeout',
          $s.$apply();
       });
     }
-    
+
   $s.doFactoryReset = function() {
     chrome.runtime.sendMessage({
       type: "doFullReset",

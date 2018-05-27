@@ -30,14 +30,14 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
   $s.issiteexcluded = true;
   $s.SettingsInAboutConfig = true;
   log.enabled = false;
-  var currentUrl, tabid, url2, domain;
+  var currentUrl, tabid, url2;
   $s.showstat = false;
   $s.savecount = 0;
   $s.loadcount = 0;
-  var tempIncludes = [];
-  var tempExcludes = [];
+//  var tempIncludes = [];
+//  var tempExcludes = [];
   $s.isLoadAllLinksEnabled = false;
-
+  $s.hideIncludebutton = false;
   getCurrentUrl(updateDetails);
 
   function updateDetails() {
@@ -51,8 +51,9 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
         $s.savecount = counts.waybackSavescount;
         $s.loadcount = counts.archivedPageLoadsCount;
         $s.disabled = response.appDisabled;
-        tempExcludes = response.tempExcludes;
-        tempIncludes = response.tempIncludes;
+        // Later when we need, we will take and use the TempExcludes and TempIncludes, commenting for now.
+        //tempExcludes = response.tempExcludes;
+        //tempIncludes = response.tempIncludes;
         $s.isLoadAllLinksEnabled = response.isLoadAllLinksEnabled;
         //  console.log('tempExcludes is ' + tempExcludes + ' tempIncludes is ' + tempIncludes);
 
@@ -77,7 +78,8 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
       tabid = tabs[0].id;
       currentUrl = tabs[0].url;
       url2 = currentUrl;
-      $s.domain = getHostfromUrl(url2).hostname;
+      let urlDetails = getHostfromUrl(url2);
+      $s.domain = urlDetails.hostname;
       if (url2.indexOf('-extension://') < 0) {
         $s.webextpagesExcluded = false;
       }
@@ -85,6 +87,9 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
       if (url2.indexOf('view-source:') > -1) {
         $s.webextpagesExcluded = true;
 
+      }
+      if ($s.domain == "web.archive.org") {
+        $s.hideIncludebutton = true;
       }
       if (url2.indexOf('file:/') > -1) {
         $s.webextpagesExcluded = true;
@@ -101,7 +106,7 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
         $s.SettingsInAboutConfig = false;
 
       }
-      if (url2.indexOf('settings.html') > 0) {
+      if (url2.indexOf('settings.html') >= 0) {
         $s.settingspagehide = true;
       }
 
@@ -248,6 +253,7 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
 
   // TODO : Move the below to Background script similar to AddtoExcludes
   $s.removeSitefromexcludeTemp = function() {
+   if($s.domain != "web.archive.org"){
     var tempInc = [];
     storage.get({
       tempIncludes: []
@@ -259,44 +265,46 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
       storage.set({
         tempIncludes: tempInc
       });
-      $s.removeSitefromexclude();
-    });
 
+    });
   }
+}
 
   // TODO : Move the below to Background script similar to AddtoExcludes
 
   $s.removeSitefromexclude = function() {
-    $s.issiteexcluded = false;
-    let incUrl = getPattern();
-    //console.log('Remove from exclude url is ' + incUrl);
-    chrome.runtime.sendMessage({
-      type: "getredirects"
-    }, function(response) {
-      for (var i = 0; i < response.redirects.length; i++) {
-        $s.redirectslist.push(response.redirects[i]);
-      }
-      log('exclude pattern before removing site from exclude..' + $s.redirectslist[0].excludePattern);
-      $s.redirectslist[0].excludePattern = $s.redirectslist[0].excludePattern.replaceAll(incUrl, '');
-      log('exclude pattern after removing site from exclude..' + $s.redirectslist[0].excludePattern);
-
+    if ($s.domain != "web.archive.org") {
+      $s.issiteexcluded = false;
+      let incUrl = getPattern();
+      //console.log('Remove from exclude url is ' + incUrl);
       chrome.runtime.sendMessage({
-        type: "saveredirects",
-        redirects: $s.redirectslist
+        type: "getredirects"
       }, function(response) {
-        log('Saved ' + $s.redirectslist.length + ' redirects at ' + new Date() +
-          '. Message from background page:' +
-          response.message);
-        var wmurl = 'https://web.archive.org/web/2/' + currentUrl;
-        //chrome.tabs.reload({bypassCache: true});
-        //using updare instead of just a reload as it didn't seem to work in android firefox - either works in desktop firefox
-        chrome.tabs.update(tabid, {
-          active: true,
-          url: wmurl
-        }); //.then(onUpdated, onupError);
-        window.close();
+        for (var i = 0; i < response.redirects.length; i++) {
+          $s.redirectslist.push(response.redirects[i]);
+        }
+        log('exclude pattern before removing site from exclude..' + $s.redirectslist[0].excludePattern);
+        $s.redirectslist[0].excludePattern = $s.redirectslist[0].excludePattern.replaceAll(incUrl, '');
+        log('exclude pattern after removing site from exclude..' + $s.redirectslist[0].excludePattern);
+
+        chrome.runtime.sendMessage({
+          type: "saveredirects",
+          redirects: $s.redirectslist
+        }, function(response) {
+          log('Saved ' + $s.redirectslist.length + ' redirects at ' + new Date() +
+            '. Message from background page:' +
+            response.message);
+          var wmurl = 'https://web.archive.org/web/2/' + currentUrl;
+          //chrome.tabs.reload({bypassCache: true});
+          //using updare instead of just a reload as it didn't seem to work in android firefox - either works in desktop firefox
+          chrome.tabs.update(tabid, {
+            active: true,
+            url: wmurl
+          }); //.then(onUpdated, onupError);
+          window.close();
+        });
       });
-    });
+    }
   }
 
   // Getting alltabs each time and using it for openUrl seems to cause flickering effect
@@ -349,9 +357,13 @@ angular.module('popupApp', []).controller('PopupCtrl', ['$scope', function($s) {
   }
 
 
-  $s.isMobilefirefox = false;
-  if (navigator.userAgent.match(/Android/i)) {
-    $s.isMobilefirefox = true;
+  $s.seefirstversion=function(){
+   chrome.runtime.sendMessage({
+      type: "seeFirstVersion",
+      subtype: "fromPopup",
+      url: currentUrl,
+      tabid: tabid
+    });
   }
 
   $s.toggleDisabled = function() {
