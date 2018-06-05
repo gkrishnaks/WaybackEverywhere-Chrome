@@ -3,5 +3,5 @@ before_script:
   - node -v
   - npm install -g web-ext
  
- spec:
+spec:
   script: "web-ext build"
