@@ -3,7 +3,7 @@ before_script:
   - bash nodesource_setup.sh
   - apt-get update -qq && apt-get install -y -qq nodejs
   - apt-get install -y -qq build-essential
-  - npm install -g web-ext
+  - npm install web-ext
  
 spec:
   script: "web-ext build"
