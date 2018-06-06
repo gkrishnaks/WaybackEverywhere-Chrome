@@ -1,0 +1,15 @@
+{
+  "name": "Wayback Everywhere",
+  "version": "1.0.0",
+  "description": "Extension to redirect all pages to their archived versions in Wayback Machine except the sites in Excludes list",
+  "main": "js/background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Gokulakrishna Sudharsan",
+  "license": "GPLv3",
+  "devDependencies": {
+    "chrome-webstore-upload-cli": "^1.1.1",
+    "zip-folder": "^1.0.0"
+  }
+}
