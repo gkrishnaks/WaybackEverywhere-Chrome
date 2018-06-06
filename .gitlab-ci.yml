@@ -1,9 +1,26 @@
+image: node:6.10.3
+
 before_script:
-  - curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
-  - bash nodesource_setup.sh
-  - apt-get update -qq && apt-get install -y -qq nodejs
-  - apt-get install -y -qq build-essential
-  - npm install web-ext
+  - yarn
+
+stages:
+  - deployExtension
+
+deployExtension:
+  stage: deployExtension
+  only:
+    - master #to be invoked only on master merge
+  script:
+    - npm run build
+    - CLIENT_ID=${CLIENT_ID} CLIENT_SECRET=${CLIENT_SECRET} EXTENSION_ID=${EXTENSION_ID} REFRESH_TOKEN=${REFRESH_TOKEN} node ./deploy.js
+
+# OLD 
+#before_script:
+#  - curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
+#  - bash nodesource_setup.sh
+#  - apt-get update -qq && apt-get install -y -qq nodejs
+#  - apt-get install -y -qq build-essential
+#  - npm install web-ext
  
-spec:
-  script: "./node_modules/web-ext/bin/web-ext build"
+#spec:
+#  script: "./node_modules/web-ext/bin/web-ext build"
