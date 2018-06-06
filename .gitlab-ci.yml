@@ -6,4 +6,4 @@ before_script:
   - npm install web-ext
  
 spec:
-  script: "web-ext build"
+  script: "./node_modules/web-ext/bin/web-ext build"
