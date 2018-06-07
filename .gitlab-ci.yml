@@ -13,7 +13,7 @@ deployExtension:
     - master #to be invoked only on master merge
   script:
     - ./node_modules/web-ext/bin/web-ext build --ignore-files deploy.js package.json
-    - cd web-ext-artifacts; mv *.zip extension.zip;
+    - cd web-ext-artifacts; mv *.zip extension.zip; cd ..;
     - CLIENT_ID=${CLIENT_ID} CLIENT_SECRET=${CLIENT_SECRET} EXTENSION_ID=${EXTENSION_ID} REFRESH_TOKEN=${REFRESH_TOKEN} node ./deploy.js
 
 # OLD 
