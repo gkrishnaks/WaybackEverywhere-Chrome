@@ -14,7 +14,8 @@ deployExtension:
   script:
 #    - ./node_modules/web-ext/bin/web-ext build --ignore-files deploy.js package.json
     - npm run build
-    - cd web-ext-artifacts; mv *.zip extension.zip; cd ..;
+#    - cd web-ext-artifacts; mv *.zip extension.zip; cd ..;
+    - mv -v web-ext-artifacts/*.zip extension.zip
     - CLIENT_ID=${CLIENT_ID} CLIENT_SECRET=${CLIENT_SECRET} EXTENSION_ID=${EXTENSION_ID} REFRESH_TOKEN=${REFRESH_TOKEN} node ./deploy.js
 
 # OLD 
