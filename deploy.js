@@ -11,6 +11,9 @@ let CLIENT_ID = process.env.CLIENT_ID;
 // to fetch it from node_modules
 let webstoreLocation = './node_modules/.bin/webstore';
 
+uploadExtension();  // This just uploads - will not publish yet.
+
+function uploadExtension(){
 let cmd = getUploadCommand();
 exec(cmd, (error, stdout, stderr) => {
     console.log(`stdout: ${stdout}`);
@@ -22,7 +25,7 @@ exec(cmd, (error, stdout, stderr) => {
       publishExtension(); // on successful upload, call publish 
     }
   });
-
+}
 
 function publishExtension() {
   let cmd = getPublishCommand();
