@@ -10,16 +10,9 @@ let CLIENT_ID = process.env.CLIENT_ID;
 
 // to fetch it from node_modules
 let webstoreLocation = './node_modules/.bin/webstore';
-console.log("directory is " + __dirname);
-uploadZip().then(function(returnvalue) {
-    if(returnvalue > 0){
-        return 1;
-    }
-}); 
 
-async function uploadZip() {
-  let cmd = getUploadCommand();
-  await exec(cmd, (error, stdout, stderr) => {
+let cmd = getUploadCommand();
+exec(cmd, (error, stdout, stderr) => {
     console.log(`stdout: ${stdout}`);
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
@@ -35,13 +28,11 @@ async function uploadZip() {
       return 0;
     }
   });
-}
 
 
-
-async function publishExtension() {
+function publishExtension() {
   let cmd = getPublishCommand();
-  await exec(cmd, (error, stdout, stderr) => {
+   exec(cmd, (error, stdout, stderr) => {
     console.log(`stdout: ${stdout}`);
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
