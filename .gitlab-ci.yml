@@ -1,7 +1,6 @@
 image: node:8.0.0
 
 before_script:
-#  - npm install web-ext
   - yarn
 
 stages:
@@ -10,21 +9,8 @@ stages:
 deployExtension:
   stage: deployExtension
   only:
-    - master #to be invoked only on master merge
+    - master
   script:
-#    - ./node_modules/web-ext/bin/web-ext build --ignore-files deploy.js package.json
     - npm run build
-#    - cd web-ext-artifacts; mv *.zip extension.zip; cd ..;
     - mv -v web-ext-artifacts/*.zip extension.zip
     - CLIENT_ID=${CLIENT_ID} CLIENT_SECRET=${CLIENT_SECRET} EXTENSION_ID=${EXTENSION_ID} REFRESH_TOKEN=${REFRESH_TOKEN} node ./deploy.js
-
-# OLD 
-#before_script:
-#  - curl -sL https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
-#  - bash nodesource_setup.sh
-#  - apt-get update -qq && apt-get install -y -qq nodejs
-#  - apt-get install -y -qq build-essential
-#  - npm install web-ext
- 
-#spec:
-#  script: "./node_modules/web-ext/bin/web-ext build"
