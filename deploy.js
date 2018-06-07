@@ -33,6 +33,7 @@ function uploadZip() {
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
       console.log(`exec error: ${error}`);
+      return 2;
     } else {
       console.log('Successfully Uploaded the zip to chrome web store');
       publishExtension(); // on successful upload, call publish 
@@ -47,6 +48,7 @@ function publishExtension() {
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
       console.log(`exec error: ${error}`);
+      return 3;
     } else {
       console.log('Successfully published the newer version');
     }
