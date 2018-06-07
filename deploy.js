@@ -1,8 +1,6 @@
-//const zipFolder = require('zip-folder');
 const exec      = require('child_process').exec;
 
-//let folder = 'dist';
-let zipName = './web-ext-artifacts/extension.zip';
+let zipName = 'extension.zip';
 
 // credentials and IDs from gitlab-ci.yml file
 let REFRESH_TOKEN = process.env.REFRESH_TOKEN; 
@@ -13,18 +11,8 @@ let CLIENT_ID = process.env.CLIENT_ID;
 // to fetch it from node_modules
 let webstoreLocation = './node_modules/.bin/webstore';
 console.log("directory is " + __dirname);
-/*
-zipFolder(folder, zipName, function (err) {
-  if (err) {
-    console.log('oh no!', err);
-  } else {
-    console.log(`Successfully Zipped ${folder} and saved as ${zipName}`);
-    uploadZip(); // on successful zipping, call upload 
-  }
-});
-*/
-uploadZip(); // on successful zipping, call upload 
 
+uploadZip(); 
 
 function uploadZip() {
   let cmd = getUploadCommand();
