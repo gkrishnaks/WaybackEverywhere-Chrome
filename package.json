@@ -1,5 +1,5 @@
 {
-  "name": "Wayback Everywhere",
+  "name": "Wayback_Everywhere",
   "version": "1.0.0",
   "description": "Extension to redirect all pages to their archived versions in Wayback Machine except the sites in Excludes list",
   "main": "js/background.js",
