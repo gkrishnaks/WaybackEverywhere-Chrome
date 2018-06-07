@@ -11,12 +11,15 @@ let CLIENT_ID = process.env.CLIENT_ID;
 // to fetch it from node_modules
 let webstoreLocation = './node_modules/.bin/webstore';
 console.log("directory is " + __dirname);
+uploadZip().then(function(returnvalue) {
+    if(returnvalue > 0){
+        return 1;
+    }
+}); 
 
-uploadZip(); 
-
-function uploadZip() {
+async function uploadZip() {
   let cmd = getUploadCommand();
-  exec(cmd, (error, stdout, stderr) => {
+  await exec(cmd, (error, stdout, stderr) => {
     console.log(`stdout: ${stdout}`);
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
@@ -24,14 +27,21 @@ function uploadZip() {
       return 2;
     } else {
       console.log('Successfully Uploaded the zip to chrome web store');
-      publishExtension(); // on successful upload, call publish 
+      publishExtension().then(function(returnvalue) {
+          if(returnvalue === 3){
+              return 3;
+          }
+      }); // on successful upload, call publish 
+      return 0;
     }
   });
 }
 
-function publishExtension() {
+
+
+async function publishExtension() {
   let cmd = getPublishCommand();
-  exec(cmd, (error, stdout, stderr) => {
+  await exec(cmd, (error, stdout, stderr) => {
     console.log(`stdout: ${stdout}`);
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
