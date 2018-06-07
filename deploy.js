@@ -1,7 +1,7 @@
-const zipFolder = require('zip-folder');
+//const zipFolder = require('zip-folder');
 const exec      = require('child_process').exec;
 
-let folder = 'dist';
+//let folder = 'dist';
 let zipName = 'extension.zip';
 
 // credentials and IDs from gitlab-ci.yml file
@@ -12,7 +12,8 @@ let CLIENT_ID = process.env.CLIENT_ID;
 
 // to fetch it from node_modules
 let webstoreLocation = './node_modules/.bin/webstore';
-
+console.log("directory is " + __dirname);
+/*
 zipFolder(folder, zipName, function (err) {
   if (err) {
     console.log('oh no!', err);
@@ -21,6 +22,9 @@ zipFolder(folder, zipName, function (err) {
     uploadZip(); // on successful zipping, call upload 
   }
 });
+*/
+uploadZip(); // on successful zipping, call upload 
+
 
 function uploadZip() {
   let cmd = getUploadCommand();
@@ -50,9 +54,11 @@ function publishExtension() {
 }
 
 function getUploadCommand() {
-  return `${webstoreLocation} upload --source ${zipName} --extension-id ${EXTENSION_ID} --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --refresh-token ${REFRESH_TOKEN}`;
+    console.log(`${webstoreLocation} upload --source ${zipName} --extension-id ${EXTENSION_ID} --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --refresh-token ${REFRESH_TOKEN}`);
+  //return `${webstoreLocation} upload --source ${zipName} --extension-id ${EXTENSION_ID} --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --refresh-token ${REFRESH_TOKEN}`;
 }
 
 function getPublishCommand() {
-  return `${webstoreLocation} publish --extension-id ${EXTENSION_ID} --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --refresh-token ${REFRESH_TOKEN}`;
+    console.log(`${webstoreLocation} publish --extension-id ${EXTENSION_ID} --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --refresh-token ${REFRESH_TOKEN}`);
+ // return `${webstoreLocation} publish --extension-id ${EXTENSION_ID} --client-id ${CLIENT_ID} --client-secret ${CLIENT_SECRET} --refresh-token ${REFRESH_TOKEN}`;
 }
