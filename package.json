@@ -9,6 +9,7 @@
   "author": "Gokulakrishna Sudharsan",
   "license": "GPLv3",
   "devDependencies": {
+    "web-ext": "^2.6.9",
     "chrome-webstore-upload-cli": "^1.1.1",
     "zip-folder": "^1.0.0"
   }
