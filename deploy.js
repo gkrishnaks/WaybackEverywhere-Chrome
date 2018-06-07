@@ -2,7 +2,7 @@
 const exec      = require('child_process').exec;
 
 //let folder = 'dist';
-let zipName = 'extension.zip';
+let zipName = './web-ext-artifacts/extension.zip';
 
 // credentials and IDs from gitlab-ci.yml file
 let REFRESH_TOKEN = process.env.REFRESH_TOKEN; 
