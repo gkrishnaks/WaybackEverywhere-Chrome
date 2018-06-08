@@ -19,7 +19,7 @@ exec(cmd, (error, stdout, stderr) => {
     console.log(`stdout: ${stdout}`);
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
-      console.log(`exec error: ${error}`);
+      console.log(`exec error: uploadExtension failed`);
       process.exit(1);
     } else {
       console.log('Successfully Uploaded the zip to chrome web store');
@@ -34,7 +34,7 @@ function publishExtension() {
     console.log(`stdout: ${stdout}`);
     console.log(`stderr: ${stderr}`);
     if (error !== null) {
-      console.log(`exec error: ${error}`);
+      console.log(`exec error: publishExtension failed`);
       process.exit(1);
     } else {
       console.log('Successfully published the newer version');
