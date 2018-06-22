@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Extension to redirect all pages to their archived versions in Wayback Machine except the sites in Excludes list",
   "scripts": {
-    "build":"web-ext build --ignore-files deploy.js package.json"
+    "build":"web-ext build --ignore-files deploy.js package.json yarn.lock LICENSE README.md TODO 'Privacy Policy'"
   },
   "author": "Gokulakrishna Sudharsan",
   "license": "GPLv3",
