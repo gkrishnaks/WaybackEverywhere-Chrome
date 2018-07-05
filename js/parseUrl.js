@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Home: https://github.com/gkrishnaks
+    Home: https://gitlab.com/gkrishnaks/WaybackEverywhere-Chrome
 */
 
 
@@ -36,8 +36,8 @@ function getHostfromUrl(url) {
   let temp;
   let url2 = url;
 
-  if (url2.indexOf('web.archive.org') > 0) {
-    if (url2.indexOf('archive.org/save') > 0) {
+  if (url2.indexOf('web.archive.org') > -1) {
+    if (url2.indexOf('archive.org/save') > -1) {
       url2 = url2.replace('/save', '/web/2')
     }
     url2 = url2.split('web.archive.org/').pop();
