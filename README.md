@@ -23,11 +23,10 @@ Over time (perhaps a few days of usage..), you can build this 'Excludes' list to
 Features
 --------
 
-*   **Popup menu** \- Use the Popup menu to add/remove site from Excludes list, temporarily disable WaybackEverywhere addon and open Settings and Help Pages. More information on Popup Menu available here [Popup Menu](#popup-menu)
 *   **Automatic Detection of Wayback Machine Site's Error Messages** \- Addon tries to detect messages displayed by Wayback Machine and either Saves a available page to Wayback or Adds the site to Exclude list based on the error message. More information on Automatic Detection of WM Error Messages available here [Auto-detect Wayback Machine Error Messages](#auto-detect-wayback-machine-error-messages)
+*   **Popup menu** \- Use the Popup menu to add/remove site from Excludes list, temporarily disable WaybackEverywhere addon and open Settings and Help Pages. More information on Popup Menu available here [Popup Menu](#popup-menu)
 *   **Settings Page** \- Settings page allows you to add or remove a site from the excludes list, and also do factory reset. If you are interested, you can enable console logging from here. More information on Popup Menu available here [Settings Page](#edit-settings)
-*   **Auto-enable Reader mode for Archived pages** \- From settings page, enable the option to automatically open "Reader mode" for archived pages which support Firefox's reader mode.
-*   **Load all links in a archived page as new tabs** \- From Settings page, enable the option to open all links of an archived page based on a "selector" that user enters in popup menu - intended to be used for opening all "chapters" in new tabs when reading a html book format pages. Example : Wikisource or wikibooks. EXPERIMENTAL FEATURE disabled by default.
+*   **Load all links in a archived page as new tabs** \- From Settings page, enable the option to open all links of an archived page based on a "selector" that user enters in popup menu - intended to be used for opening all "chapters" in new tabs when reading a html book format pages. Example : Wikisource or wikibooks. EXPERIMENTAL FEATURE disabled by default. [open-all-links-in-a-archived-page-as-new-tabs](#open-all-links-in-a-archived-page-as-new-tabs)
 
 Auto-Detect Wayback Machine Error Messages
 -----------------------------
@@ -75,7 +74,6 @@ Edit Settings
 *   Click "Edit Settings" from Popup Menu to open Settings Page.
 *   Settings page lets you view Existing Excludes list. and add or remove from excludes list manually by using the buttons provides
 *   This page also lets you reset the Excludes list back to the default one provided during addon installation if the user wishes for the same. More information on the default list : [Default Excludes list provided during install](#default-excludes-list)
-*   From settings page, you can enable the option to automatically open "Reader mode" for archived pages which support Firefox's reader mode.
 *   You can export and import settings from this page. More information on this here : [Export and Import Settings](#exportimport-settings)
 *   Additionally, curious users may enable Logging on the checkbox provided to view system logs in Browser console.
 
@@ -113,13 +111,32 @@ Default Excludes List
 *   Some cloud storage sites as they need login anyway (Dropbox, WeTransfer,Box..)
 *   Some video streaming (netflix..) sites and live streaming sites (Periscope..)
 *   Some audio podcast sites 
-
+*   Some Language learning sites (Duolingo..) as they need login to work. 
+*   Download links in which the URL ends with 100 common extensions get auto-excluded so you can begin the download from within archived page 	(example.com/download/file.zip or /file.doc will get auto-excluded only for just the download link) 
+*   Some video conference site links like skype, sococo, jitsi and few other online meeting sites.
+*   Some online office suite sites like office365, zoho and onlyoffice.
+*   Some mailerlist domains so that you can easily unsubscribe from marketing emails ;-)
+																	
 P.S : There's no other agenda behind this bundled list made available during install :)
 
 If user wishes to reset his Excludes back to the ones provided by Developer, she can do so from the Settings Page
 
 TODO : [TODO](TODO)
 
+Details on Stats
+----------------
+*   Stats are displayed in popup menu. Stats include total redirects and total pages saved to Wayback Machine using the addon.
+*   Once a page is redirected to wayback machine, all links in the page get web.archive.org/web/2* prefixed by Wayback Machine. Clicking on any link within an archived page will <em>not</em> add to the redirected counts.
+*   Saved counts are updated for both auto-save and also manual saves using "save this page" button in popup menu.
+*   Since the stat counts are per-device (per-install) statistics, it is not included in Export/Import setting feature.
+*   To avoid multiple disk writes, stats are stored to disk once every four minutes. It's fine if browser is closed before a four minute window as stats are not a critical value :)
+
+Advanced Settings page
+----------------------
+*   For ADVANCED USERS only : There are some settings for advanced users in a page that's not directly accessible from Addon UI pages.
+*   To open the advanced settings page, open Settings page or help page -> adjust the URL to <addonID>/advanceduser.html
+*   In the page, you can clear all Excludes, set stats to Zero, and remove all the fitlers
+*   You also have the option to add to filters or remove a specific filter - use this carefully. Avoid using this add filter feature if you aren't sure what UTM or similar things are.
 
 License
 -------
