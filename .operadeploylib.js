@@ -5,7 +5,7 @@ const temp = require('fs-temp/promise')
 const globby = require('globby')
 const uploadOperaExtension = require('upload-opera-extension')
 
-const UserError = require('./user-error')
+const UserError = require('./.user-error')
 
 const webextBinPath = require.resolve('.bin/web-ext')
 
