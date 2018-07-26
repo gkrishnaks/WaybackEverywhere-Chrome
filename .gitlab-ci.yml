@@ -2,9 +2,12 @@
 image: debian:latest
 
 before_script:
-  - apt-get install nodejs
-  - apt-get install npm
-  - apt-get install yarn
+  - apt-get install -y curl
+  - curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+  - apt-get update
+  - apt-get install -y nodejs
+  - apt-get install -y npm
+  - apt-get install -y yarn
   - yarn
 
 stages:
