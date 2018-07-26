@@ -13,6 +13,7 @@ before_script:
   - apt-get install -y nodejs
   - apt-get install -y npm
   - apt-get install -y yarn
+  - cd /builds/gkrishnaks/WaybackEverywhere-Chrome
   - yarn
 
 stages:
