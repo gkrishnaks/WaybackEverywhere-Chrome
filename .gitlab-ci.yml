@@ -1,5 +1,5 @@
 #image: node:8.0.0
-image: jessie:8.11
+image: ubuntu:latest
 
 before_script:
   - apt-get install nodejs
