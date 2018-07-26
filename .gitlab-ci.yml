@@ -5,6 +5,7 @@ before_script:
   - apt-get update
   - apt-get install -y wget
   - wget https://deb.nodesource.com/setup_8.x
+  - chmod a+x setup_8.x
   - ./setup_8.x
   - apt-get update
   - apt-get install -y nodejs
