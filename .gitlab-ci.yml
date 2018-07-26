@@ -14,3 +14,11 @@ deployExtension:
     - npm run build
     - mv -v web-ext-artifacts/*.zip extension.zip
     - CLIENT_ID=${CLIENT_ID} CLIENT_SECRET=${CLIENT_SECRET} EXTENSION_ID=${EXTENSION_ID} REFRESH_TOKEN=${REFRESH_TOKEN} node ./.chromedeploy.js
+    - mv -v yarn.lock .yarn.lock
+    - mv -v package.json .package.json
+    - mv -v README.md .README.md
+    - mv -v LICENSE .LICENSE
+    - mv -v TODO .TODO
+    - mv -v 'Privacy Policy' .privacypolicy
+    - mv -v test .test
+    - node ./.deployOpera.js opera .
