@@ -1,6 +1,10 @@
-image: node:8.0.0
+#image: node:8.0.0
+image: jessie:8.11
 
 before_script:
+  - apt-get install nodejs
+  - apt-get install npm
+  - apt-get install yarn
   - yarn
 
 stages:
