@@ -3,7 +3,8 @@ image: debian:latest
 
 before_script:
   - apt-get update
-  - curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+  - wget https://deb.nodesource.com/setup_8.x
+  - ./setup_8.x
   - apt-get update
   - apt-get install -y nodejs
   - apt-get install -y npm
