@@ -7,9 +7,8 @@ require('dotenv').config()
 
 const neodoc = require('neodoc')
 
-const firefox = require('./.firefoxdeploy.js')
 const UserError = require('./.user-error')
-const opera = require('./lib/opera')
+const opera = require('./.operadeploylib')
 
 const usage = `
 Usage:
