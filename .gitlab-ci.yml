@@ -4,6 +4,8 @@ image: debian:latest
 before_script:
   - apt-get update
   - apt-get install -y wget
+  - apt-get install -y gnupg
+  - apt-get install -y build-essentials
   - wget https://deb.nodesource.com/setup_8.x
   - chmod a+x setup_8.x
   - ./setup_8.x
