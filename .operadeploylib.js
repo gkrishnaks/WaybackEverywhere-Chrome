@@ -44,7 +44,8 @@ module.exports = async function (source) {
       email: process.env.WEXT_SHIPIT_OPERA_EMAIL,
       extensionId: process.env.WEXT_SHIPIT_OPERA_EXTENSION_ID,
       password: process.env.WEXT_SHIPIT_OPERA_PASSWORD,
-      zipPath: path.join(artifacts, files[0])
+      zipPath: path.join(artifacts, files[0]),
+      disableSandbox: true
     })
 
     spinner.succeed('Extension submitted for modernation')
