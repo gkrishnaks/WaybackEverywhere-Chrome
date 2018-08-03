@@ -947,6 +947,27 @@ let temp = [];
   });
 }
 
+function dedupExcludes(excludePattern){
+  if(excludePattern.length > 0){
+    let excludePatternArray = excludePattern.split("*|*");
+    let oldlength = excludePatternArray.length;
+    excludePatternArray[0] = excludePatternArray[0].replace("*","");
+    excludePatternArray[excludePatternArray.length - 1] = excludePatternArray[excludePatternArray.length - 1].replace("*","");
+    excludePatternArray = Array.from(new Set(excludePatternArray));
+    let shouldSave = false;
+    if(excludePatternArray.length !== oldlength){
+      shouldSave = true;
+    }
+    // additional precaution just in case.. :
+    if(excludePatternArray.indexOf("web.archive.org") === -1){
+      excludePatternArray.push("web.archive.org");
+    }
+    let newPattern = "*" + excludePatternArray.join("*|*") + "*";
+    let returnObj = {excludePattern: newPattern, shouldSave:shouldSave }
+    return returnObj;
+  }
+}
+
 function handleUpdate(istemporary) {
   let updateWorker = new Worker(chrome.extension.getURL('js/readData.js'));
 
@@ -964,35 +985,56 @@ function handleUpdate(istemporary) {
     let changeInRemovefromFiltersList = e.data.workerResult.changeInRemovefromFiltersList;
     let addtoFiltersList = e.data.workerResult.addtoFiltersList;
     let removefromFiltersList = e.data.workerResult.removefromFiltersList;
+ //   let changeinAddtoCommonFileExtensions = e.data.workerResult.changeinAddtoCommonFileExtensions;
+ //   let addtoCommonFileExtensions = e.data.workerResult.addtoCommonFileExtensions;
+ //   let changeinRemovefromCommonFileExtensions = e.data.workerResult.changeinRemovefromCommonFileExtensions;
+ //   let removefromCommonFileExtensions = e.data.workerResult.removefromCommonFileExtensions;
+
     updateWorker.terminate();
     // Add or remove from Excludes
     STORAGE.get({
         redirects: [],
         filters: []
+      //  ,commonExtensions: []
       },
       function(response) {
         log("handleUpdate-  updating default excludes if needed");
         let redirects = response.redirects;
         let filterlist = response.filters;
-        // Add to redirects
+       // let currentCommonExtArray = response.commonExtensions;
 
+        // Determine changes first..
+        // check if we need to add to Excludes list.
         if (changeInAddList && addToDefaultExcludes != null && addToDefaultExcludes.length > 0) {
-         if(redirects[0].excludePattern.indexOf(addToDefaultExcludes) === -1 ){
+          //if(redirects[0].excludePattern.indexOf(addToDefaultExcludes) === -1 ){
           redirects[0].excludePattern = redirects[0].excludePattern + addToDefaultExcludes;
           log("the new excludes list is..." + redirects[0].excludePattern);
-          }
+          
         }
+
+        // check if we need to remove from Excludes list.
         if (changeInRemoveList && removeFromDefaultExcludes != null && removeFromDefaultExcludes.length > 0) {
           for (let i = 0; i < removeFromDefaultExcludes.length; i++) {
             if (removeFromDefaultExcludes[i].indexOf("web.archive.org") > -1) {
               continue;
             }
             let pattern = "|*" + removeFromDefaultExcludes[i] + "*";
-            //log("removing this from excludest list" + pattern);
+            //log("removing this from excl  udest list" + pattern);
             redirects[0].excludePattern = redirects[0].excludePattern.replaceAll(pattern, '');
           }
           log("the new excludes list is. ." + redirects[0].excludePattern);
         }
+
+        // remove duplicates from Exclude Pattern during every addon update.
+        // https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/59
+        let dedupExcludesObj = dedupExcludes(redirects[0].excludePattern);
+        if(dedupExcludesObj.shouldSave){
+          changeInAddList = true;
+          redirects[0].excludePattern = dedupExcludesObj.excludePattern;
+          console.log("Wayback Everywhere updated, deduplicated excludes list");
+        }
+
+        //check if we need to add to Filters list.
         if (changeInAddtoFiltersList && addtoFiltersList != null && addtoFiltersList.length > 0) {
           for (let i = 0; i < addtoFiltersList.length; i++) {
             if (filterlist.indexOf(addtoFiltersList[i]) < 0) {
@@ -1000,6 +1042,8 @@ function handleUpdate(istemporary) {
             }
           }
       }
+
+      //check if we need to remove from Filters list.
       if(changeInRemovefromFiltersList && removefromFiltersList!= null && removefromFiltersList.length > 0){
         let index=-1;
          for(let i=0; i<removefromFiltersList.length; i++){
@@ -1010,6 +1054,39 @@ function handleUpdate(istemporary) {
          }
       }
 
+     /* TODO update when sync-ing firefox changes 
+
+      // Check if we need to add to Common File extensions to exclude.
+       if(changeinAddtoCommonFileExtensions && (addtoCommonFileExtensions.length > 0) ){
+        for(ext of addtoCommonFileExtensions){
+          if(currentCommonExtArray.indexOf(ext) === -1){
+          currentCommonExtArray.push(ext);
+          }
+        }
+      }
+
+      // Check if we need to add to Common File extensions to exclude.
+      if(changeinRemovefromCommonFileExtensions && (removefromCommonFileExtensions.length > 0) ){
+        for(ext of removefromCommonFileExtensions){
+          let index = currentCommonExtArray.indexOf(ext);
+          if(index > -1){
+          currentCommonExtArray.splice(index,1);
+          }
+        }
+      }
+
+      // Save all the changes 
+      // Save changes in Common Extensions
+      if(changeinAddtoCommonFileExtensions || changeinRemovefromCommonFileExtensions){
+        commonExtensions = currentCommonExtArray;
+         STORAGE.set({
+          commonExtensions: currentCommonExtArray
+        },function(){
+           log("CommonExtensions saved as .. " + JSON.stringify(currentCommonExtArray));
+           });
+      } */
+
+      // Save changes in Filters list
       if(changeInAddtoFiltersList || changeInRemovefromFiltersList){
            filters = filterlist;
            STORAGE.set({
@@ -1019,40 +1096,18 @@ function handleUpdate(istemporary) {
            });
       }
 
+      // Save changes in Exclude pattern
       if (changeInAddList || changeInRemoveList) {
         STORAGE.set({
           redirects: redirects
-        }, function() {
-          // just do a onstartup function once to set some values..
-          handleStartup();
+        });
+      }
 
-        if (changeInAddtoFiltersList || changeInRemovefromFiltersList) {
-          filters = filterlist;
-          STORAGE.set({
-            filters: filterlist
-          }, function() {
-            log("filters saved as .. " + JSON.stringify(filterlist));
-          });
-        }
-
-        if (changeInAddList || changeInRemoveList) {
-          STORAGE.set({
-            redirects: redirects
-          }, function() {
-            // just do a onstartup function once to set some values..
-            handleStartup();
-
-          });
-        } else {
-          handleStartup();
-        }
-
-        if (showUpdatehtml && istemporary != true) {
+      //show update html if needed but not durin web-ext runs
+      if (showUpdatehtml && istemporary !== true) {
           openUpdatehtml();
-        }
-      });
-
-  }
+      }
+  
 });
 }
 }
