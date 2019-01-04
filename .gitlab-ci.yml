@@ -26,7 +26,7 @@ before_script:
   - apt-get update -y
   - apt-get install -yq git
   - cd /builds/gkrishnaks/WaybackEverywhere-Chrome
-  - yarn add https://github.com/gkrishnaks/upload-opera-extension.git#f32f01c423a99030ed9988e78e18a82dc05fa10e
+  - yarn add https://github.com/gkrishnaks/upload-opera-extension.git
   #- yarn add https://github.com/ElectronicManuel/upload-opera-extension.git#6963785330257f7eb86f7a78e426b7e644a5166e
   - yarn
 
