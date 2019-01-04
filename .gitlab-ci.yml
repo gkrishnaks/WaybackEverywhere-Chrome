@@ -20,6 +20,8 @@ before_script:
  # - apt-get remove -y cmdtest
  # - npm install -g yarn
  # - mv /node_modules/ /builds/gkrishnaks/WaybackEverywhere-Firefox/
+  - rm -rf /etc/apt/sources.list.d/google-chrome.list
+  - apt-get update -y
   - apt-get install -yq git
   - cd /builds/gkrishnaks/WaybackEverywhere-Chrome
   - yarn add https://github.com/ElectronicManuel/upload-opera-extension.git#6963785330257f7eb86f7a78e426b7e644a5166e
@@ -37,6 +39,7 @@ test:
     - /^test.*$/
     - /^Sync.*$/
     - /^sync.*$/
+    - /^Patch.*$/
   script:
 #    - export DISPLAY=:99.0
     - npm run karmasingle
