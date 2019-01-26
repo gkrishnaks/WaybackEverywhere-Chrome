@@ -25,7 +25,7 @@ describe("Background script tests", function() {
       var tempExcludes = ["|*gnu.org*"];
       // log.enabled = true;
       checkTempExcludes("gnu.org", tempExcludes);
-      //tempExcludes.push("|*gnu.org*");
+      //tempExcludes.push("|*gn`u.org*");
       assert.ok(storage.set.notCalled);
     });
 
@@ -165,14 +165,6 @@ describe("Background script tests", function() {
         )
       );
     });
-    /* Not Applicable for Chrome version
-    it("should subscribe on tabs Updated", function() {
-      subscribeListeners();
-      assert.ok(chrome.tabs.onUpdated.addListener.calledOnce);
-      assert.ok(
-        chrome.tabs.onUpdated.addListener.calledWith(tabsUpdatedListner)
-      );
-    });*/
 
     it("should subscribe on runtime Messages", function() {
       subscribeListeners();
@@ -364,142 +356,6 @@ describe("Background script tests", function() {
     });
   });
 
-  /* Not applicable for Chrome version
-  describe("Tabs updated listener handler", function() {
-    var tabId, changeInfo, tab;
-    beforeEach(function() {
-      isReaderModeEnabled = false;
-      chrome.flush();
-      tabId = 2;
-      changeInfo = { isArticle: true };
-      tab = { url: "https://gnu.org/path/to/something" };
-      justUpdatedReader = {
-        1: "https://web.archive.org/web/2/https://fsf.org"
-      };
-    });
-
-    it("should show page action icon when in normal websites", function() {
-      chrome.flush();
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      assert.ok(chrome.pageAction.show.calledOnce);
-      assert.ok(chrome.pageAction.show.calledWithExactly(2));
-    });
-
-    it("should not show page action icon when in about: pages or file or ftp pages", function() {
-      var list = [
-        "about:addons",
-        "about:config",
-        "about:preferences",
-        "file://user/home/somefile.json",
-        "ftp://somepath",
-        "about:debug",
-        "about:log",
-        "about:fir",
-        "about:downloads",
-        "about:mem"
-      ];
-      for (var item of list) {
-        tab.url = item;
-        tabsUpdatedListner(tabId, changeInfo, tab);
-        assert.ok(chrome.pageAction.show.notCalled);
-        assert.ok(chrome.pageAction.hide.calledWithExactly(2));
-        chrome.flush();
-      }
-    });
-
-    it("should not toggle readermode for live sites", function() {
-      chrome.tabs.toggleReaderMode = function() {};
-      var stub = sinon.stub(chrome.tabs, "toggleReaderMode");
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      stub.restore();
-      sinon.assert.notCalled(stub);
-    });
-
-    it("should toggle readermode for archived sites and setting is enabled", function() {
-      isReaderModeEnabled = true;
-      tab.url =
-        "https://web.archive.org/web/2324234/https://gnu.org/path/to/something";
-      chrome.tabs.toggleReaderMode = function(id) {};
-      var stub = sinon.stub(chrome.tabs, "toggleReaderMode");
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      stub.restore();
-      sinon.assert.calledOnce(stub);
-      sinon.assert.calledWith(stub, 2);
-    });
-
-    it("should toggle readermode for archived sites on same tab for new url than the one stored in obj", function() {
-      isReaderModeEnabled = true;
-      tab.url =
-        "https://web.archive.org/web/2324234/https://gnu.org/path/to/something";
-      chrome.tabs.toggleReaderMode = function(id) {};
-      var stub = sinon.stub(chrome.tabs, "toggleReaderMode");
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      sinon.assert.calledOnce(stub);
-      sinon.assert.calledWith(stub, 2);
-      tab.url =
-        "https://web.archive.org/web/2324234/https://fsf.org/path/to/something/something";
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      sinon.assert.calledTwice(stub);
-      sinon.assert.calledWith(stub, 2);
-      stub.restore();
-    });
-
-    it("should not toggle readermode 2nd time for archived sites and setting is enabled - this is needed so that user is able to exit the readermode - need this until mozilla resolves this", function() {
-      isReaderModeEnabled = true;
-      tab.url =
-        "https://web.archive.org/web/2324234/https://gnu.org/path/to/something";
-      chrome.tabs.toggleReaderMode = function(id) {};
-      var stub = sinon.stub(chrome.tabs, "toggleReaderMode");
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      stub.restore();
-      sinon.assert.calledOnce(stub);
-      sinon.assert.calledWith(stub, 2);
-    });
-
-    it("should not toggle readermode 2nd time for archived sites and setting is enabled - this is needed so that user is able to exit the readermode - need this until mozilla resolves this", function() {
-      isReaderModeEnabled = true;
-      tab.url =
-        "https://web.archive.org/web/2324234/https://gnu.org/path/to/something";
-      chrome.tabs.toggleReaderMode = function(id) {};
-      var stub = sinon.stub(chrome.tabs, "toggleReaderMode");
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      sinon.assert.calledOnce(stub);
-      sinon.assert.calledWith(stub, 2);
-      stub.reset();
-      chrome.tabs.toggleReaderMode = function(id) {};
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      sinon.assert.notCalled(stub);
-      stub.restore();
-    });
-
-    it("justUpdatedReader object should be cleaned of closed tabs to avoid size increase", function() {
-      isReaderModeEnabled = true;
-      //log.enabled = true;
-      tab.url =
-        "https://web.archive.org/web/2324234/https://gnu.org/path/to/something";
-      chrome.tabs.toggleReaderMode = function(id) {};
-      var stub = sinon.stub(chrome.tabs, "toggleReaderMode");
-      tabsUpdatedListner(tabId, changeInfo, tab);
-      stub.restore();
-      sinon.assert.calledOnce(stub);
-      sinon.assert.calledWith(stub, 2);
-      expect(justUpdatedReader).to.have.ownPropertyDescriptor(2);
-
-      assert.include(justUpdatedReader, {
-        2: "https://web.archive.org/web/2324234/https://gnu.org/path/to/something"
-      });
-
-      var removeInfo = {};
-      handleRemoved(tabId, removeInfo);
-
-      expect(justUpdatedReader).to.not.have.ownPropertyDescriptor("2");
-
-      assert.notInclude(justUpdatedReader, {
-        2: "https://web.archive.org/web/2324234/https://gnu.org/path/to/something"
-      });
-    });
-  }); */
-
   describe("Handle version updates", function() {
     it("should be able to open update html when needed", function() {
       chrome.flush();
@@ -579,7 +435,7 @@ describe("Background script tests", function() {
     });
 
     it("Should return right away with empty object if user tries to load archived version of wayback machine itself", function() {
-      var stub = sinon.stub(window, "getHostfromUrl").returns({
+      var stub = sinon.stub(UrlHelper, "getHostfromUrl").returns({
         hostname: "",
         url: ""
       });
@@ -868,33 +724,6 @@ describe("Background script tests", function() {
       sinon.assert.calledWithExactly(stub, "example1.org", ["|*gnu.org*"]);
     });
   });
-  /* Not Applicable for Chrome version
-  describe("Page action icon for firefox", function() {
-    var tab = {};
-    var tabs = {};
-    beforeEach(function() {
-      chrome.flush();
-      tab.tabId = 5;
-      tabs = [
-        { url: "https://gnu.org", id: 2 },
-        { url: "https://example.com", id: 3 }
-      ];
-      chrome.tabs.query.yields(tabs);
-    });
-    it("Should show page action for normal sites loaded in curren tab", function() {
-      tabOnActivatedListener(tab);
-      assert.ok(chrome.pageAction.show.calledOnce);
-      assert.ok(chrome.pageAction.show.calledWithExactly(5));
-    });
-
-    it("Should hide page action for non http tabs", function() {
-      tabs[0].url = "about:memory";
-      tabOnActivatedListener(tab);
-      assert.ok(chrome.pageAction.show.notCalled);
-      assert.ok(chrome.pageAction.hide.calledOnce);
-      assert.ok(chrome.pageAction.hide.calledWithExactly(5));
-    });
-  }); */
 
   describe("StartUp handlers", function() {
     var STORAGE = chrome.storage.local;
@@ -951,41 +780,13 @@ describe("Background script tests", function() {
       handleStartup();
       expect(isLoadAllLinksEnabled).to.be.eql(false);
     });
-
-    it("Should check if app enabled or disabled and set it accordingly", function() {
-      readermode = true;
-      STORAGE.get
-        .withArgs({
-          readermode: false
-        })
-        .yields({ readermode });
-
-      handleStartup();
-      /*Not applicable for Chrome version assert.ok(
-        STORAGE.get.calledWith({
-          readermode: false
-        })
-      );
-      expect(isReaderModeEnabled).to.be.eql(true);*/
-
-      readermode = false;
-      STORAGE.get
-        .withArgs({
-          readermode: false
-        })
-        .yields({ readermode });
-
-      handleStartup();
-
-      expect(isReaderModeEnabled).to.be.eql(false);
-    });
   });
 
   describe("Addon's On-Installed functionality", function() {
     var details = {};
     var store;
     var fake = sinon.fake();
-    sinon.replace(window, "loadinitialdata", fake);
+    sinon.replace(window, "loadInitialdata", fake);
 
     beforeEach(function() {
       chrome.flush();
@@ -996,7 +797,7 @@ describe("Background script tests", function() {
 
     it("Should call load Initial data function to setup the settings", function() {
       var fake = sinon.fake();
-      sinon.replace(window, "loadinitialdata", fake);
+      sinon.replace(window, "loadInitialdata", fake);
       onInstalledfn(details);
       expect(fake.callCount).to.be.eql(1);
       expect(fake.lastArg).to.be.eql("init");
@@ -1244,7 +1045,7 @@ describe("Background script tests", function() {
     it("Should handle doFullReset message to do settings reset", function() {
       request.type = "doFullReset";
       var fake = sinon.fake();
-      sinon.replace(window, "loadinitialdata", fake);
+      sinon.replace(window, "loadInitialdata", fake);
       MessageHandler(request, sender, sendResponse);
       sinon.restore();
       sinon.assert.calledOnce(fake);

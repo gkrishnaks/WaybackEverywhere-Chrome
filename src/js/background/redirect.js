@@ -2,7 +2,7 @@
 
     Wayback Everywhere - a browser addon/extension to redirect all pages to
     archive.org's Wayback Machine except the ones in Excludes List
-    Copyright (C) 2018 Gokulakrishna K S
+    Copyright (C) 2018 - 2019 Gokulakrishna Sudharsan
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -310,11 +310,11 @@ Redirect.prototype = {
       //  logs("returning false");
       return false;
     }
-    // fix for https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/3
+    // fix for https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/3
     // Url might have tracking parts after ? that might be in excludes
     // In that case, it shouldn't be excluded
     // for example, if url has http://example.com/some/page?utm=twitter.com -> though twitter.com is in Excludes list, shouldn't exclude that as it's in tracking part
-    let url2 = getHostfromUrl(url).hostname;
+    let url2 = UrlHelper.getHostfromUrl(url).hostname;
     var shouldExclude = this._rxExclude.test(url2);
     this._rxExclude.lastIndex = 0;
     // The below may not happen at all as background.js just returns when hostname is "t.co"

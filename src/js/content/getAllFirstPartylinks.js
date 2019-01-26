@@ -2,7 +2,7 @@
 
     Wayback Everywhere - a browser addon/extension to redirect all pages to
     archive.org's Wayback Machine except the ones in Excludes List
-    Copyright (C) 2018 Gokulakrishna K S
+    Copyright (C) 2018 - 2019 Gokulakrishna Sudharsan
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,13 +20,24 @@
     Home: https://gitlab.com/gkrishnaks/WaybackEverywhere-Chrome
 */
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.type == "getAllFirstPartylinks") {
+    let anchorsArray = [];
+    let anchors = document.getElementsByTagName("a");
 
-//Nothing really here except the app object. Filters, and directives are
-//include with the controllers that use them. If we need to add any that
-//are used by multiple controllers then we'll define them here.
-var waybackEverywhereApp = angular.module('waybackEverywhereApp', []);
-
-//To make the private stuff in Firefox work properly
-window.addEventListener('DOMContentLoaded', function() {
-  document.body.classList.remove('private');
+    for (let i = 0; i < anchors.length; i++) {
+      // add only the links of same hostname - so we check if link is not starting with http
+      if (
+        anchors[i].getAttribute("href") !== null &&
+        !anchors[i].getAttribute("href").indexOf("http") == 0
+      ) {
+        anchorsArray.push(anchors[i].getAttribute("href"));
+      }
+    }
+    //console.log(anchorsArray);
+    sendResponse({
+      data: anchorsArray
+    });
+  }
+  return true;
 });

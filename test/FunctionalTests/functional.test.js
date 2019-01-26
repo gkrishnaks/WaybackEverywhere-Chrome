@@ -29,10 +29,10 @@ describe("Wayback Everywhere", () => {
   });
   //In firefox, we use page action and not browser action. Use this for chrome version
   // see why : https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/2
-  it('should have a Browser action Button', async () => {
+  /*it('should have a Browser action Button', async () => {
     const button = await helper.toolbarButton();
     assert.equal(await button.getAttribute('tooltiptext'), 'Wayback Everywhere');
-  });  
+  });  */
 
   it("should load archived version of example.org", async () => {
     await geckodriver.sleep(3000);
