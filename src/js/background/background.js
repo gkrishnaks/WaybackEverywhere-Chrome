@@ -2,7 +2,7 @@
 
     Wayback Everywhere - a browser addon/extension to redirect all pages to
     archive.org's Wayback Machine except the ones in Excludes List
-    Copyright (C) 2018 Gokulakrishna K S
+    Copyright (C) 2018 - 2019 Gokulakrishna Sudharsan
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@ function subscribeListeners() {
   );
 }
 subscribeListeners();
-let STORAGE = chrome.storage.local;
+
+var STORAGE = chrome.storage.local;
 
 var commonExtensions = [];
 //var excludesList = [];
@@ -63,9 +64,9 @@ STORAGE.get({
       log("tempIncludes to be sent to popup.js will be .." + tempIncludes);
     });  */
 
-// headerHandler - Append this to browser's UserAgent for "Save" requests - "WaybackEverywhere"
+// headerHandler - Make this as browser's UserAgent for "Save" requests - "WaybackEverywhere"
 // Wayback Machine Team requested for an unique useragent so that they can audit "save page" requests
-// that are sent from this extension/addon - https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/4
+// that are sent from this extension/addon - https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/4
 
 function headerHandler(details) {
   let headers = details.requestHeaders;
@@ -84,26 +85,17 @@ function headerHandler(details) {
   return blockingResponse;
 }
 
-
-/*
-chrome.pageAction.onClicked.addListener(function(tab) {
-
-  chrome.pageAction.setPopup({
-    tabId: tab.id,
-    popup: "popup.html"
-  });
-});*/
-
-
 log.enabled = false;
 
-function loadinitialdata(type) {
+function loadInitialdata(type) {
   let STORAGE = chrome.storage.local;
 
   let initialsettings;
   let jsonUrl = "settings/setting.json";
   let absUrl = chrome.extension.getURL(jsonUrl);
-  let readworker = new Worker(chrome.extension.getURL("js/readData.js"));
+  let readworker = new Worker(
+    chrome.extension.getURL("js/background/readData.js")
+  );
   readworker.postMessage([absUrl, "json", type]);
   readworker.onmessage = function(e) {
     initialsettings = e.data.workerResult.redirects;
@@ -156,7 +148,7 @@ var addSitetoExclude = function(request, sender, sendResponse) {
       }
 
       log("tabid is.." + tabid);
-      let obj = getHostfromUrl(url1);
+      let obj = UrlHelper.getHostfromUrl(url1);
       log(
         obj.hostname +
           " and outputurl " +
@@ -175,7 +167,7 @@ var addSitetoExclude = function(request, sender, sendResponse) {
         alreadyExistsinExcludes = true;
       }
 
-      // Fix for https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/13
+      // Fix for https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/13
       // t.co seems to be the only hostname that causes problems with other sites that has "somenamet.com" in url where "t.co" gets a match against t.co
 
       if (
@@ -361,7 +353,7 @@ function checkRedirects(details) {
   //log(JSON.stringify(details));
 
   // Once wayback redirect url is loaded, we can just return it except when it's in exclude pattern.
-  // this is for issue https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/7
+  // this is for issue https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/7
   // When already in archived page, Wayback Machine appends web.archive.org/web/2/ to all URLs in the page
   // For example, when viewing archived site, there's a github link - and if github is in Excludes list,
   // Using this, we load live page of github since it's in excludes list.
@@ -375,10 +367,10 @@ function checkRedirects(details) {
     return {};
   }
 
-  let urlDetails = getHostfromUrl(details.url);
+  let urlDetails = UrlHelper.getHostfromUrl(details.url);
 
   if (urlDetails.hostname.length === 0) {
-    //getHostfromUrl will return empty hostname if you try to load archived version of Wayback Machine itself.
+    //UrlHelper.getHostfromUrl will return empty hostname if you try to load archived version of Wayback Machine itself.
     return {};
   }
 
@@ -425,14 +417,14 @@ function checkRedirects(details) {
       urlDetails.url.indexOf("/Account") > -1
     ) {
       log(
-        "Loginfound or signup found in URL. Adding site to temporary excludes " +
+        "Loginfound or signup found in URL. Adding site to excludes " +
           urlDetails.hostname +
           " when you tried to load" +
           details.url
       );
       let request = {};
       request.subtype = "fromContent";
-      request.category = "AddtoTempExcludesList";
+      request.category = "excludethisSite";
       let sender = { tab: {} };
       sender.tab = {};
       sender.tab.id = details.tabId;
@@ -453,10 +445,10 @@ function checkRedirects(details) {
   ];
   //since "t.co" shoterner matches with sites that have "..t.com" in the url as we use RegExp
   //As t.co is the most common for links clicked from tweets - let's check and return t.co without further processing
-  // https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/13
+  // https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/13
 
   // Made the below a loop now after ft.com matched against sites that have ft.com in the URL..
-  // https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/22
+  // https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/22
 
   for (let i = 0; i < ambiguousExcludes.length; i++) {
     if (urlDetails.hostname == ambiguousExcludes[i]) {
@@ -473,7 +465,7 @@ function checkRedirects(details) {
     }
   }
 
-  // https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/20
+  // https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/20
   // Issue happens when a blog redirects to medium globalidentify for some reason
   // .. as we don't have medium in Excludes list - since medium.com articles work fine with Wayback machine
   // .. just programatically add these redirect blogs to excludes list and load live page.
@@ -502,7 +494,7 @@ function checkRedirects(details) {
   }
 
   if (details.url.indexOf("web.archive.org/web") > -1) {
-    // #23 - https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/23
+    // #23 - https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/23
     // Load live url when url ends with common file extensions so that user can download a file easily
     // example.com/path/to/dir/file.zip
     if (commonExtensions.length > 0) {
@@ -536,7 +528,7 @@ function checkRedirects(details) {
       }
     }
 
-    // Issue 12   https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/12
+    // Issue 12   https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/12
     let isJustSaved = false;
     let toSaveurl = urlDetails.url.replace("#close", "");
     for (let k = 0; k < justSaved.length; k++) {
@@ -650,7 +642,7 @@ function checkRedirects(details) {
 
       counts.archivedPageLoadsCount += 1;
       log("counts updated to " + counts.archivedPageLoadsCount);
-      //Issue 10 - https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/10
+      //Issue 10 - https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/10
       // Remove ?utm and others and redirect only direct clean URL to wayback machine
       result.redirectTo = cleanUrlsOnFilters(result.redirectTo);
       log("Redirecting to ......" + result.redirectTo);
@@ -703,9 +695,11 @@ function monitorChanges(changes, namespace) {
   if (changes.filters) {
     filters = changes.filters.newValue;
   }
+
   if (changes.isLoadAllLinksEnabled) {
     isLoadAllLinksEnabled = changes.isLoadAllLinksEnabled.newValue;
   }
+
   if (changes.counts) {
     // This is needed only when user resets stats to 0 from advanceduser page
     if (
@@ -876,13 +870,13 @@ function MessageHandler(request, sender, sendResponse) {
   } else if (request.type == "doFullReset") {
     var resettype = request.type;
     delete request.type;
-    // loadinitialdata(() => {
+    // FileReader.loadInitialdata(() => {
     //   log('finished full  reset, returning response to setting page');
     //   sendResponse({
     //     message: ' Factory reset. Reloaded  settings from bundled json'
     //   });
     // });
-    loadinitialdata(resettype);
+    loadInitialdata(resettype);
   } else if (request.type == "savetoWM") {
     delete request.type;
     if (appDisabled) {
@@ -935,7 +929,7 @@ function MessageHandler(request, sender, sendResponse) {
     }
   } else if (request.type == "seeFirstVersion") {
     delete request.type;
-    let urlDetails = getHostfromUrl(request.url);
+    let urlDetails = UrlHelper.getHostfromUrl(request.url);
     let firstVersionURL = "https://web.archive.org/web/0/" + urlDetails.url;
     chrome.tabs.update(
       request.tabid,
@@ -950,6 +944,7 @@ function MessageHandler(request, sender, sendResponse) {
             " as " +
             firstVersionURL
         );
+        sendResponse("loaded first archived version");
       }
     );
   } else if (request.type == "clearTemps") {
@@ -1047,7 +1042,7 @@ function savetoWM(request, sender, sendResponse) {
   let wmSaveUrl;
   let toSave;
   if (url1.indexOf("web.archive.org") > -1) {
-    let obj = getHostfromUrl(url1);
+    let obj = UrlHelper.getHostfromUrl(url1);
     toSave = obj.url.replace("#close", "");
   } else {
     toSave = url1.replace("#close", "");
@@ -1245,7 +1240,9 @@ function dedupExcludes(excludePattern) {
 }
 
 function handleUpdate(istemporary) {
-  let updateWorker = new Worker(chrome.extension.getURL("js/readData.js"));
+  let updateWorker = new Worker(
+    chrome.extension.getURL("js/background/readData.js")
+  );
   let STORAGE = chrome.storage.local;
   let type = "update";
   let updateJson = "settings/updates.json";
@@ -1440,7 +1437,7 @@ function openUpdatehtml() {
   });
 }
 
-// Fix for https://github.com/gkrishnaks/WaybackEverywhere-Firefox/issues/11
+// Fix for https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/issues/11
 // This will run once when background script runs so that counts are set correctly when addon is disabled and then enabled from about:addons
 STORAGE.get(
   {
@@ -1464,7 +1461,7 @@ STORAGE.get(
 
 function handleStartup() {
   log(
-    "Handle startup - fetch counts, fetch appdisabled setting, clear out any temp excludes or temp includes"
+    "Handle startup - fetch counts, fetch readermode setting, fetch appdisabled setting, clear out any temp excludes or temp includes"
   );
   //For issue 11 fix, we moved this to background script - so that counts can get set to global variables correctly..
   // .. when addon is disabled and enabled from about:addons . Commenting the below
@@ -1476,8 +1473,6 @@ function handleStartup() {
     counts.waybackSavescount = response.counts.waybackSavescount;
     oldcounts = JSON.parse(JSON.stringify(counts));
   });  */
-
- 	let STORAGE = chrome.storage.local;
 
   STORAGE.get(
     {
@@ -1516,9 +1511,9 @@ function handleStartup() {
 }
 
 function onInstalledfn(details) {
-  log(JSON.stringify(details));
+  //console.log(JSON.stringify(details));
   if (details.reason == "install") {
-    loadinitialdata("init");
+    loadInitialdata("init");
     console.log(" Wayback Everywhere addon installed");
 
     let counts = {
