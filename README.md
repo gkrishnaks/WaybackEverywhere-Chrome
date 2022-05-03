@@ -10,7 +10,7 @@ Install in Brave (Muon based version) : Use this method [Chrome Extension in Bra
 
 ## What is Wayback Everywhere?
 
-Wayback Everywhere is a browser extension/addon that allows you to automatically redirect all pages to Internet Archive's [Wayback Machine](https://web.archive.org) except the site (domains) that are in 'Excludes' List, and auto-save to Wayback Machine if a page is not yet archived.
+Wayback Everywhere is a browser extension/addon that allows you to automatically redirect all pages to Internet Archive's [Wayback Machine](https://web.archive.org) except the site (domains) that are in 'Excludes' List, and auto-save to Wayback Machine if a page is not yet archived. There a archiving-oriented [reasons why you might want to do this](https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox/-/snippets/1799237).
 
 Examples:
 
